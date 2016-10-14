@@ -192,8 +192,14 @@ void cycle(){
             pc +=2;
             break;
         case 0x9:
-
+                //9xy0 - Skip next instruction if Vx != Vy
+                if( V[(opcode & 0x0F00) >> 8] != V[(opcode & 0x00F0) >> 4]){
+                    pc +=4;
+                }else{
+                    pc +=2;
+                }
             break;
+
         default;
             //Not implemented (yet)
             break;
