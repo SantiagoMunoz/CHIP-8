@@ -224,11 +224,12 @@ void cycle(){
                 for(j=0;j < 8; j++){ // j - stride x
                     //If something goes off the screen, draw it coming from the other side
                     posx = ( ((opcode & 0x0F00)>>8) + j ) > 63 ? ((opcode & 0x0F00)>>8) + j - 64 : ((opcode & 0x0F00)>>8) + j;
-                    Vtemp = screen[posx+posy*64];   //Load contents of current pixel-> (Vx +j, Vy + i)
+                    Vtemp = screen[posx+posy*64];   //Load contents of current pixel-> (Vx +j, Vy + i) to then calculate the override
                     screen[posx+posy*64] ^= ( (memory[I+j] & (0x80>>i)) != 0 ); // 0b10000000 LSR for the individual bit inside the row
-                    if(screen[posx+posy*64] < Vtemp) V[16] = 1; // If current pixel is zero and it was preciously 1 -> Set Vf to 0verride
+                    if(screen[posx+posy*64] < Vtemp) V[16] = 1; // If current pixel is zero and it was preciously 1 -> Set Vf to override
                 }
             }
+            draw = 1;
             pc+=2;
             break;
         default:
