@@ -42,7 +42,7 @@ int main(int argc, char **argv){
         cycle();
         if(draw){
             update_screen();
-            draw = false;
+            draw = 0;
         }
         
         input();
@@ -78,6 +78,8 @@ void load_file(){
     
 void cycle(){       
     unsigned char Vtemp = 0x00;
+    unsigned char i = 0, j =0;
+    unsigned short posx = 0, posy = 0;
     /* Process one cpu cycle */
 
     //Fetch instruction
@@ -89,7 +91,7 @@ void cycle(){
             if(opcode == 0x00E0){
                 //00E0 - Clear the display
                 memset(screen, 64*32, 0x00);                
-                draw = true;
+                draw = 1;
                 pc += 2;
             }
             if(opcode == 0x00EE){
@@ -217,10 +219,19 @@ void cycle(){
         case 0xD:
             //Dxyn - Display n bit sprite starting at memory position given by I, coordinates (Vx,Vy) and then set VF to collision in case a pixel gets deleted.
             V[16] = 0; //Preemptive flag reset
-            
-
+            for(i=0; i < (opcode & 0x000F); i++){ // i - stride y
+                posy =( ((opcode & 0x00F0)>>8) + j ) > 32? ((opcode & 0x00F0)>>8) + j - 32 : ((opcode & 0x00F0)>>8) + j;
+                for(j=0;j < 8; j++){ // j - stride x
+                    //If something goes off the screen, draw it coming from the other side
+                    posx = ( ((opcode & 0x0F00)>>8) + j ) > 63 ? ((opcode & 0x0F00)>>8) + j - 64 : ((opcode & 0x0F00)>>8) + j;
+                    Vtemp = screen[posx+posy*64];   //Load contents of current pixel-> (Vx +j, Vy + i)
+                    screen[posx+posy*64] ^= ( (memory[I+j] & (0x80>>i)) != 0 ); // 0b10000000 LSR for the individual bit inside the row
+                    if(screen[posx+posy*64] < Vtemp) V[16] = 1; // If current pixel is zero and it was preciously 1 -> Set Vf to 0verride
+                }
+            }
+            pc+=2;
             break;
-        default;
+        default:
             //Not implemented (yet)
             break;
 
