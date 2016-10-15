@@ -6,6 +6,7 @@
 
 #include <string.h>
 #include <stdio.h>
+#include <stdlib.h>
 
 unsigned short opcode; //Keypad
 unsigned char memory[4096]; //Memory (4kb)
@@ -166,21 +167,21 @@ void cycle(){
                 //8xy4 - Set Vx = Vx + Vy with carry on V16 
                 Vtemp = V[(opcode & 0x0F00)>>8];
                 V[(opcode & 0x0F00)>>8] = V[(opcode & 0x0F00)>>8] + V[(opcode & 0x00F0)>>4];
-                if(Vtemp > V[(opcode & 0x0F00)>>8]) V[16] = 1;
+                if(Vtemp > V[(opcode & 0x0F00)>>8]) V[16] = 1;  else  V[16] = 0;
             }
             if((opcode & 0x000F) == 0x5){
                 //8xy5 - Set Vx = Vx - Vy with NOT borrow on V16 
-                if(V[(opcode & 0x0F00)>>8] > V[(opcode & 0x00F0)>>4]) V[16] = 1;
+                if(V[(opcode & 0x0F00)>>8] > V[(opcode & 0x00F0)>>4]) V[16] = 1; else V[16] = 0;
                 V[(opcode & 0x0F00)>>8] = V[(opcode & 0x0F00)>>8] - V[(opcode & 0x00F0)>>4];
             }
             if((opcode & 0x000F) == 0x6){
                 //8xy6 - If LSB of Vx is 1, set Vf and LSR Vx 
-                if( (V[(opcode & 0x0F00)>>8] & 0x0001) > 0 ) V[16] = 1;
+                if( (V[(opcode & 0x0F00)>>8] & 0x0001) > 0 ) V[16] = 1; else V[16] = 0;
                 V[(opcode & 0x0F00)>>8] = V[(opcode & 0x0F00)>>8] >> 1; //LSR = Divide by 2
             }
             if((opcode & 0x000F) == 0x7){
                 //8xy7 - Set Vx = Vy - Vx with NOT borrow on V16 
-                if(V[(opcode & 0x00F0)>>8] > V[(opcode & 0x0F00)>>4]) V[16] = 1;
+                if(V[(opcode & 0x00F0)>>8] > V[(opcode & 0x0F00)>>4]) V[16] = 1; else V[16] = 0;
                 V[(opcode & 0x00F0)>>8] = V[(opcode & 0x00F0)>>8] - V[(opcode & 0x0F00)>>4];
 
             }
@@ -192,14 +193,33 @@ void cycle(){
             pc +=2;
             break;
         case 0x9:
-                //9xy0 - Skip next instruction if Vx != Vy
-                if( V[(opcode & 0x0F00) >> 8] != V[(opcode & 0x00F0) >> 4]){
-                    pc +=4;
-                }else{
-                    pc +=2;
-                }
+            //9xy0 - Skip next instruction if Vx != Vy
+            if( V[(opcode & 0x0F00) >> 8] != V[(opcode & 0x00F0) >> 4]){
+                pc +=4;
+            }else{
+                pc +=2;
+            }
             break;
+        case 0xA:
+            //Annn - Set I to nnn
+            I = opcode & 0x0FFF;
+            pc += 2;
+            break;
+        case 0xB:
+            //Bnnn - Jump to V0 + nnn
+            pc = V[0] + (opcode & 0x0FFF);
+            break;
+        case 0xC:
+            //Cxkk - Set Vx = kk + random number between 0 and 255
+            V[ (opcode & 0x0F00) >> 8 ] = (opcode & 0x00FF) + (rand() % 255);
+            pc +=2;
+            break;
+        case 0xD:
+            //Dxyn - Display n bit sprite starting at memory position given by I, coordinates (Vx,Vy) and then set VF to collision in case a pixel gets deleted.
+            V[16] = 0; //Preemptive flag reset
+            
 
+            break;
         default;
             //Not implemented (yet)
             break;
@@ -207,8 +227,14 @@ void cycle(){
     }
     
     //Update timers
-    if(sound_timer > 0) sound_timer--;
-    if(delay_timer > 0) delay_timer--; 
+    if(sound_timer > 0){
+        --sound_timer;
+        if(sound_timer == 0){
+            //Play sound
+            
+        }
+    }
+    if(delay_timer > 0) --delay_timer; 
 }
 void update_screen(){
     //Update the screen
