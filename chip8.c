@@ -232,6 +232,28 @@ void cycle(){
             draw = 1;
             pc+=2;
             break;
+        case 0xE:
+            if( (opcode & 0x000F) == 0xE ){
+                //Ex9E - Skip next instruction if key at Vx is pressed
+                if( ( ((opcode & 0x0F00)>>8) <16) & ( key[ (opcode & 0x0F00) >> 8 ] == 1 ) ){
+                    pc += 4;
+                }else{
+                    pc +=2;
+                }
+            }
+            if( (opcode & 0x000F) == 0x1 ){
+                //ExA1 - Skip next instruction if key at Vx is not pressed
+                if( ( ((opcode & 0x0F00)>>8) <16) & ( key[ (opcode & 0x0F00) >> 8 ] == 0 ) ){
+                    pc += 4;
+                }else{
+                    pc +=2;
+                }
+            }
+            break;
+        case 0xF:
+
+
+            break;
         default:
             //Not implemented (yet)
             break;
