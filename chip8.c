@@ -58,8 +58,7 @@ void init(){
     //Init memory and registers
     memset(memory, 4096, 0x00);
     memset(V, 16, 0x00);
-    //Load interpreter data (fontset)
-    
+    //Load interpreter data (fontset)    
     //0
     memory[0x000] = 0xF0;
     memory[0x001] = 0x90;
@@ -156,12 +155,6 @@ void init(){
     memory[0x04D] = 0xF0;
     memory[0x04E] = 0x80;
     memory[0x04F] = 0x80;
-
-
-
-
-
-
 
     //Init Program Counter
     pc = 512; //Start of Program Memory 
@@ -360,9 +353,11 @@ void cycle(){
             }
             if((opcode & 0x00FF) == 0x000A){
                 //Fx0A  - Wait for a key press, then store the value of the key in Vx
-
-                //TBI
-                
+                i=16;    //Used to register if a key was pressed
+                while(i==18)
+                    for(j=0;j<16;j++)
+                        if(key[j] == 1) i=j;     //Inherently higher value keys are prioritary
+                V[(opcode & 0x0F00) >> 8] = key[j];
             }
             if((opcode & 0x00FF) == 0x0015){
                 //Fx15 - Set DT to the value of Vx
@@ -370,7 +365,7 @@ void cycle(){
             }
             if((opcode & 0x00FF) == 0x0018){
                 //Fx18 - Set ST to the value os Vx
-                sound_timer = V[(opcode & 0x0F00) >> 8]
+                sound_timer = V[(opcode & 0x0F00) >> 8];
             }
             if((opcode & 0x00FF) == 0x001E){
                 //Fx1E - Add I and Vx, then store in I
@@ -378,33 +373,33 @@ void cycle(){
             }
             if((opcode & 0x00FF) == 0x0029){
                 //Fx29 - Set I = Location in memory of hex sprite of value Vx
-                
-                //TBI
-                
+                if(V[(opcode & 0x0F00) >> 8] < 0xF)
+                    I = 0x000 + 5*V[(opcode & 0x0F00) >>8];
+                else
+                    I = 0x000; //Write 0 by default
             }
             if((opcode & 0x00FF) == 0x0033){
                 //Fx33 - Store BCD of Vx at locations I, I+1 and I+2
-                
-                //TBI
+                memory[I]   = (V[(opcode && 0x0F00) >> 8] & 0xF00 ) >> 8;
+                memory[I+1] = (V[(opcode && 0x0F00) >> 8] & 0x0F0 ) >> 4;
+                memory[I+2] = (V[(opcode && 0x0F00) >> 8] & 0x00F );
             }
             if((opcode & 0x00FF) == 0x0055){
                 //Fx55 - Dump registers V0 to Vx in memory starting from memory position given by I 
                 for(i=0; i< ( (opcode & 0x0F00) >> 8 ); i++)
                     memory[I+i] = V[i];
-                
             }
             if((opcode & 0x00FF) == 0x0065){
                 //Fx65 - Load registers from memory starting from position given by I
                 for(i=0; i< ( (opcode & 0x0F00) >> 8 ); i++)
                     V[i] = memory[I+i];
-
             }
             pc +=2;
             break;
         default:
-            //Not implemented (yet)
+            printf("Instruction not recognized\n");
+            pc+=2;
             break;
-
     }
     
     //Update timers
