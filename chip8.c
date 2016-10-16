@@ -9,6 +9,9 @@
 #include <stdlib.h>
 #include <SDL2/SDL.h>
 
+#define SDL_WHITE  0xFFFFFFFF
+#define SDL_BLACK  0xFF000000
+
 
 unsigned short opcode; //Keypad
 unsigned char memory[4096]; //Memory (4kb)
@@ -24,6 +27,7 @@ SDL_Window *window;
 SDL_Renderer *ren;
 SDL_Texture *tex;
 SDL_Event event;
+uint32_t pixels[256*128]; // 64*32 upscaled 4/1 to 265*128
 
 unsigned char delay_timer, sound_timer; // Timer registers
 
@@ -421,7 +425,7 @@ void cycle(){
         --sound_timer;
         if(sound_timer == 0){
             //Play sound
-            
+            printf("\a"); 
         }
     }
 
@@ -431,6 +435,25 @@ void cycle(){
 void update_screen(){
     //Update the screen
     
+unsigned char i, j, ii,jj;
+uint32_t target_color;
+for(j=0;j<32;j++){
+        for(i=0;i<64;i++){
+            if(screen[j*64+i] == 1)
+                target_color = SDL_WHITE;
+            else
+                target_color = SDL_BLACK;
+            for(jj=j;jj<j+4;jj++){
+                for(ii=i;ii<i+4;ii++){
+                    pixels[jj*256+ii] = target_color;
+                }
+            }
+        }
+    }
+    SDL_UpdateTexture(tex, NULL, pixels, 256 * sizeof(uint32_t));
+    SDL_RenderClear(ren);
+    SDL_RenderCopy(ren, tex, NULL, NULL);
+    SDL_RenderPresent(ren);
 }
 void input(){
     //Update keyboard status
@@ -495,10 +518,6 @@ void input(){
             case SDL_QUIT:
                 running = 0;
                 break;
-        }
-
-    }
-
+        } //end switch
+    } //end while
 }
-
-
