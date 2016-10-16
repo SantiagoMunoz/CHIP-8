@@ -7,6 +7,8 @@
 #include <string.h>
 #include <stdio.h>
 #include <stdlib.h>
+#include <SDL2/SDL.h>
+
 
 unsigned short opcode; //Keypad
 unsigned char memory[4096]; //Memory (4kb)
@@ -17,6 +19,11 @@ unsigned short pc; //Program counter
 unsigned char screen[64*32]; //64x32 display
 unsigned char key[16]; //Keypad
 unsigned char draw;
+
+SDL_Window *window;
+SDL_Renderer *ren;
+SDL_Texture *tex;
+SDL_Event event;
 
 unsigned char delay_timer, sound_timer; // Timer registers
 
@@ -30,14 +37,16 @@ void cycle();       //Process one cpu cycle
 void update_screen();        //Update the screen
 void input();       //Update keyboard status
 
+unsigned char running;
 int main(int argc, char **argv){
 
     //Setup
+    running = 1;
 
     init();
     load_file();
 
-    for(;;){
+    while(running == 1){
 
         cycle();
         if(draw){
@@ -54,7 +63,12 @@ int main(int argc, char **argv){
 
 void init(){        
     /* Init interpreter */
-
+    //Init SDL
+    if(SDL_Init(SDL_INIT_VIDEO) != 0)
+        printf("SDL Init error!\n");
+    window = SDL_CreateWindow("Chip-8",100, 100, 256, 128, SDL_WINDOW_SHOWN); //Each screen pixel is 4 pixel wide
+    ren = SDL_CreateRenderer(window, -1, 0);
+    tex = SDL_CreateTexture(ren, SDL_PIXELFORMAT_ARGB8888, SDL_TEXTUREACCESS_STATIC, 256, 128);
     //Init memory and registers
     memset(memory, 4096, 0x00);
     memset(V, 16, 0x00);
@@ -166,7 +180,7 @@ void init(){
 void load_file(){   
     //Load the program
     FILE *f;
-    f = fopen("BRIX","r");
+    f = fopen("programs/BRIX","r");
     
     fread(memory + 512, 1, 3583, f); //Read up to 3583 elements of 1 byte and store them from position 512
     fclose(f);
@@ -410,7 +424,9 @@ void cycle(){
             
         }
     }
+
     if(delay_timer > 0) --delay_timer; 
+
 }
 void update_screen(){
     //Update the screen
@@ -418,6 +434,70 @@ void update_screen(){
 }
 void input(){
     //Update keyboard status
+    while( (SDL_PollEvent(&event)) ){
+        switch(event.type){
+            case SDL_KEYDOWN:
+                //key pressed
+            case SDL_KEYUP:
+                //key released
+                if(event.key.keysym.sym == SDLK_0){
+                        key[0x0] = ( event.type == SDL_KEYDOWN ? 1 : 0 );
+                }
+                if(event.key.keysym.sym == SDLK_1){
+                        key[0x1] = ( event.type == SDL_KEYDOWN ? 1 : 0 );
+                }
+                if(event.key.keysym.sym == SDLK_2){
+                        key[0x2] = ( event.type == SDL_KEYDOWN ? 1 : 0 );
+                }
+                if(event.key.keysym.sym == SDLK_3){
+                        key[0x3] = ( event.type == SDL_KEYDOWN ? 1 : 0 );
+                }
+                if(event.key.keysym.sym == SDLK_4){
+                        key[0xC] = ( event.type == SDL_KEYDOWN ? 1 : 0 );
+                }
+                if(event.key.keysym.sym == SDLK_q){
+                        key[0x4] = ( event.type == SDL_KEYDOWN ? 1 : 0 );
+                }
+                if(event.key.keysym.sym == SDLK_w){
+                        key[0x5] = ( event.type == SDL_KEYDOWN ? 1 : 0 );
+                }
+                if(event.key.keysym.sym == SDLK_e){
+                        key[0x6] = ( event.type == SDL_KEYDOWN ? 1 : 0 );
+                }
+                if(event.key.keysym.sym == SDLK_r){
+                        key[0xD] = ( event.type == SDL_KEYDOWN ? 1 : 0 );
+                }
+                if(event.key.keysym.sym == SDLK_a){
+                        key[0x7] = ( event.type == SDL_KEYDOWN ? 1 : 0 );
+                }
+                if(event.key.keysym.sym == SDLK_s){
+                        key[0x8] = ( event.type == SDL_KEYDOWN ? 1 : 0 );
+                }
+                if(event.key.keysym.sym == SDLK_d){
+                        key[0x9] = ( event.type == SDL_KEYDOWN ? 1 : 0 );
+                }
+                if(event.key.keysym.sym == SDLK_f){
+                        key[0xE] = ( event.type == SDL_KEYDOWN ? 1 : 0 );
+                }
+                if(event.key.keysym.sym == SDLK_z){
+                        key[0xA] = ( event.type == SDL_KEYDOWN ? 1 : 0 );
+                }
+                if(event.key.keysym.sym == SDLK_x){
+                        key[0x0] = ( event.type == SDL_KEYDOWN ? 1 : 0 );
+                }
+                if(event.key.keysym.sym == SDLK_c){
+                        key[0xB] = ( event.type == SDL_KEYDOWN ? 1 : 0 );
+                }
+                if(event.key.keysym.sym == SDLK_v){
+                        key[0xF] = ( event.type == SDL_KEYDOWN ? 1 : 0 );
+                }
+                break;
+            case SDL_QUIT:
+                running = 0;
+                break;
+        }
+
+    }
 
 }
 
