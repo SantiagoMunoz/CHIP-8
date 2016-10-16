@@ -7,10 +7,11 @@
 #include <string.h>
 #include <stdio.h>
 #include <stdlib.h>
+#include <time.h>
 #include <SDL2/SDL.h>
 
 #define SDL_WHITE  0xFFFFFFFF
-#define SDL_BLACK  0xFF000000
+#define SDL_BLACK  0x00000000
 
 
 unsigned short opcode; //Keypad
@@ -44,6 +45,8 @@ void input();       //Update keyboard status
 unsigned char running;
 int main(int argc, char **argv){
 
+clock_t local_time;
+
     //Setup
     running = 1;
 
@@ -51,7 +54,8 @@ int main(int argc, char **argv){
     load_file();
 
     while(running == 1){
-
+        local_time = clock(); 
+    
         cycle();
         if(draw){
             update_screen();
@@ -59,7 +63,9 @@ int main(int argc, char **argv){
         }
         
         input();
-
+        while( clock() < (local_time + CLOCKS_PER_SEC/30)){
+        
+        }
     }
     
     return 0;
@@ -199,7 +205,7 @@ void cycle(){
     //Fetch instruction
     opcode = memory[pc] << 8 | memory[pc + 1]; 
     //Decode instruction + Execute
-    switch( (opcode & 0xF0000) >> 12){
+    switch( (opcode & 0xF000) >> 12){
         case 0x0:
             //Either 0nnn, 00E0 or 00EE
             if(opcode == 0x00E0){
@@ -226,6 +232,7 @@ void cycle(){
             if(sp < 12){
                 stack[sp] = pc;
                 sp++;
+                pc = (opcode & 0x0FFF);
             }
             break;
         case 0x3:
@@ -246,7 +253,7 @@ void cycle(){
             break;
         case 0x5:
             //5xy0 - skip next instruction if Vx == Vy
-            if( V[(opcode & 0x0F00)>>8] == V[opcode & 0x00F0] ){
+            if( V[(opcode & 0x0F00)>>8] == V[(opcode & 0x00F0)>>4] ){
                 pc += 4;
             }else{
                 pc += 2;
@@ -265,7 +272,7 @@ void cycle(){
         case 0x8:
             if((opcode & 0x000F) == 0x0){
                 //8xy0 - Set Vx = Vy
-                V[(opcode & 0x0F00)>>8] += V[(opcode & 0x00F0)>>4];
+                V[(opcode & 0x0F00)>>8] = V[(opcode & 0x00F0)>>4];
             }
             if((opcode & 0x000F) == 0x1){
                 //8xy1 - Set Vx = Vx | Vy
@@ -283,27 +290,27 @@ void cycle(){
                 //8xy4 - Set Vx = Vx + Vy with carry on V16 
                 Vtemp = V[(opcode & 0x0F00)>>8];
                 V[(opcode & 0x0F00)>>8] = V[(opcode & 0x0F00)>>8] + V[(opcode & 0x00F0)>>4];
-                if(Vtemp > V[(opcode & 0x0F00)>>8]) V[16] = 1;  else  V[16] = 0;
+                V[16] = (Vtemp > V[(opcode & 0x0F00)>>8]) ? 1 : 0;
             }
             if((opcode & 0x000F) == 0x5){
                 //8xy5 - Set Vx = Vx - Vy with NOT borrow on V16 
-                if(V[(opcode & 0x0F00)>>8] > V[(opcode & 0x00F0)>>4]) V[16] = 1; else V[16] = 0;
+                V[16] = V[(opcode & 0x0F00)>>8] > V[(opcode & 0x00F0)>>4] ? 1 : 0;
                 V[(opcode & 0x0F00)>>8] = V[(opcode & 0x0F00)>>8] - V[(opcode & 0x00F0)>>4];
             }
             if((opcode & 0x000F) == 0x6){
                 //8xy6 - If LSB of Vx is 1, set Vf and LSR Vx 
-                if( (V[(opcode & 0x0F00)>>8] & 0x0001) > 0 ) V[16] = 1; else V[16] = 0;
+                V[16] = (V[(opcode & 0x0F00)>>8] & 0x0001) > 0 ? 1 : 0;
                 V[(opcode & 0x0F00)>>8] = V[(opcode & 0x0F00)>>8] >> 1; //LSR = Divide by 2
             }
             if((opcode & 0x000F) == 0x7){
                 //8xy7 - Set Vx = Vy - Vx with NOT borrow on V16 
-                if(V[(opcode & 0x00F0)>>8] > V[(opcode & 0x0F00)>>4]) V[16] = 1; else V[16] = 0;
-                V[(opcode & 0x00F0)>>8] = V[(opcode & 0x00F0)>>8] - V[(opcode & 0x0F00)>>4];
+                V[16] = V[(opcode & 0x00F0)>>8] > V[(opcode & 0x0F00)>>4] ? 1 : 0;
+                V[(opcode & 0x0F00)>>8] = V[(opcode & 0x00F0)>>8] - V[(opcode & 0x0F00)>>4];
 
             }
             if((opcode & 0x000F) == 0xE){
                 //8xy6 - If MSB of Vx is 1, set Vf and LSR Vx 
-                if( (V[(opcode & 0x0F00)>>8] & 0x8000) > 0 ) V[16] = 1;
+                V[16] = (V[(opcode & 0x0F00)>>8] & 0x8000) > 0 ? 1 : 0;
                 V[(opcode & 0x0F00)>>8] = V[(opcode & 0x0F00)>>8] << 1; //LSL = Multiply by 2
             }
             pc +=2;
@@ -430,8 +437,9 @@ void cycle(){
     }
 
     if(delay_timer > 0) --delay_timer; 
-
+    return;
 }
+
 void update_screen(){
     //Update the screen
     
