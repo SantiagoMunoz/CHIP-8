@@ -251,8 +251,52 @@ void cycle(){
             }
             break;
         case 0xF:
+            if((opcode & 0x00FF) == 0x0007){
+                //Fx0A - Vx = Value of delay timer
+                V[ (opcode * 0x0F00) >> 8 ] = delay_timer;
+            }
+            if((opcode & 0x00FF) == 0x000A){
+                //Fx0A  - Wait for a key press, then store the value of the key in Vx
 
+                //TBI
+                
+            }
+            if((opcode & 0x00FF) == 0x0015){
+                //Fx15 - Set DT to the value of Vx
+                delay_timer = V[(opcode & 0x0F00) >> 8];
+            }
+            if((opcode & 0x00FF) == 0x0018){
+                //Fx18 - Set ST to the value os Vx
+                sound_timer = V[(opcode & 0x0F00) >> 8]
+            }
+            if((opcode & 0x00FF) == 0x001E){
+                //Fx1E - Add I and Vx, then store in I
+                I += V[(opcode & 0x0F00) >> 8];
+            }
+            if((opcode & 0x00FF) == 0x0029){
+                //Fx29 - Set I = Location in memory of hex sprite of value Vx
+                
+                //TBI
+                
+            }
+            if((opcode & 0x00FF) == 0x0033){
+                //Fx33 - Store BCD of Vx at locations I, I+1 and I+2
+                
+                //TBI
+            }
+            if((opcode & 0x00FF) == 0x0055){
+                //Fx55 - Dump registers V0 to Vx in memory starting from memory position given by I 
+                for(i=0; i< ( (opcode & 0x0F00) >> 8 ); i++)
+                    memory[I+i] = V[i];
+                
+            }
+            if((opcode & 0x00FF) == 0x0065){
+                //Fx65 - Load registers from memory starting from position given by I
+                for(i=0; i< ( (opcode & 0x0F00) >> 8 ); i++)
+                    V[i] = memory[I+i];
 
+            }
+            pc +=2;
             break;
         default:
             //Not implemented (yet)
