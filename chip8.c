@@ -213,15 +213,15 @@ void cycle(){
                 memset(screen, 64*32, 0x00);                
                 draw = 1;
                 pc += 2;
-            }
-            if(opcode == 0x00EE){
+            }else if(opcode == 0x00EE){
                 //00EE - Return from a subroutine
                 if(sp > 0){
                     sp--;
                     pc= stack[sp];
                 }
+            }else{
+                //Instruction 0nnn is deliberately ignored
             }
-            //Instruction 0nnn is deliberately ignored
             break;
         case 0x1:
             //1nnn - jump to 0xnnn
@@ -261,57 +261,59 @@ void cycle(){
             break;
         case 0x6:
             //6xkk - set Vx = kk
-            V[(opcode & 0x0F00)>>8] = opcode & 0x0FF;
+            V[(opcode & 0x0F00)>>8] = (opcode & 0x0FF);
             pc +=2;
             break;
         case 0x7:
             //7xkk - Add kk to Vx, then store in Vx
-            V[(opcode & 0x0F00)>>8] += opcode & 0x0FF;
+            V[(opcode & 0x0F00)>>8] += (opcode & 0x0FF);
             pc +=2;
             break;
         case 0x8:
-            if((opcode & 0x000F) == 0x0){
-                //8xy0 - Set Vx = Vy
-                V[(opcode & 0x0F00)>>8] = V[(opcode & 0x00F0)>>4];
-            }
-            if((opcode & 0x000F) == 0x1){
-                //8xy1 - Set Vx = Vx | Vy
-                V[(opcode & 0x0F00)>>8] = V[(opcode & 0x0F00)>>8] | V[(opcode & 0x00F0)>>4];
-            }
-            if((opcode & 0x000F) == 0x2){
-                //8xy2 - Set Vx = Vx & Vy
-                V[(opcode & 0x0F00)>>8] = V[(opcode & 0x0F00)>>8] & V[(opcode & 0x00F0)>>4];
-            }
-            if((opcode & 0x000F) == 0x3){
-                //8xy3 - Set Vx = Vx XOR Vy
-                V[(opcode & 0x0F00)>>8] = V[(opcode & 0x0F00)>>8] ^ V[(opcode & 0x00F0)>>4];
-            }
-            if((opcode & 0x000F) == 0x4){
-                //8xy4 - Set Vx = Vx + Vy with carry on V16 
-                Vtemp = V[(opcode & 0x0F00)>>8];
-                V[(opcode & 0x0F00)>>8] = V[(opcode & 0x0F00)>>8] + V[(opcode & 0x00F0)>>4];
-                V[16] = (Vtemp > V[(opcode & 0x0F00)>>8]) ? 1 : 0;
-            }
-            if((opcode & 0x000F) == 0x5){
-                //8xy5 - Set Vx = Vx - Vy with NOT borrow on V16 
-                V[16] = V[(opcode & 0x0F00)>>8] > V[(opcode & 0x00F0)>>4] ? 1 : 0;
-                V[(opcode & 0x0F00)>>8] = V[(opcode & 0x0F00)>>8] - V[(opcode & 0x00F0)>>4];
-            }
-            if((opcode & 0x000F) == 0x6){
-                //8xy6 - If LSB of Vx is 1, set Vf and LSR Vx 
-                V[16] = (V[(opcode & 0x0F00)>>8] & 0x0001) > 0 ? 1 : 0;
-                V[(opcode & 0x0F00)>>8] = V[(opcode & 0x0F00)>>8] >> 1; //LSR = Divide by 2
-            }
-            if((opcode & 0x000F) == 0x7){
-                //8xy7 - Set Vx = Vy - Vx with NOT borrow on V16 
-                V[16] = V[(opcode & 0x00F0)>>8] > V[(opcode & 0x0F00)>>4] ? 1 : 0;
-                V[(opcode & 0x0F00)>>8] = V[(opcode & 0x00F0)>>8] - V[(opcode & 0x0F00)>>4];
-
-            }
-            if((opcode & 0x000F) == 0xE){
-                //8xy6 - If MSB of Vx is 1, set Vf and LSR Vx 
-                V[16] = (V[(opcode & 0x0F00)>>8] & 0x8000) > 0 ? 1 : 0;
-                V[(opcode & 0x0F00)>>8] = V[(opcode & 0x0F00)>>8] << 1; //LSL = Multiply by 2
+            // 0x8xyZ where Z defines the instruction
+            switch (opcode & 0x000F){
+                case 0x0:
+                    //8xy0 - Set Vx = Vy
+                    V[(opcode & 0x0F00)>>8] = V[(opcode & 0x00F0)>>4];
+                    break;
+                case 0x1:
+                    //8xy1 - Set Vx = Vx | Vy
+                    V[(opcode & 0x0F00)>>8] = V[(opcode & 0x0F00)>>8] | V[(opcode & 0x00F0)>>4];
+                    break;
+                case 0x2:
+                    //8xy2 - Set Vx = Vx & Vy
+                    V[(opcode & 0x0F00)>>8] = V[(opcode & 0x0F00)>>8] & V[(opcode & 0x00F0)>>4];
+                    break;
+                case 0x3:
+                    //8xy3 - Set Vx = Vx XOR Vy
+                    V[(opcode & 0x0F00)>>8] = V[(opcode & 0x0F00)>>8] ^ V[(opcode & 0x00F0)>>4];
+                    break;
+                case  0x4:
+                    //8xy4 - Set Vx = Vx + Vy with carry on V16 
+                    Vtemp = V[(opcode & 0x0F00)>>8];
+                    V[(opcode & 0x0F00)>>8] = V[(opcode & 0x0F00)>>8] + V[(opcode & 0x00F0)>>4];
+                    V[16] = (Vtemp > V[(opcode & 0x0F00)>>8]) ? 1 : 0;
+                    break;
+                case 0x5:
+                    //8xy5 - Set Vx = Vx - Vy with NOT borrow on V16 
+                    V[16] = V[(opcode & 0x0F00)>>8] > V[(opcode & 0x00F0)>>4] ? 1 : 0;
+                    V[(opcode & 0x0F00)>>8] = V[(opcode & 0x0F00)>>8] - V[(opcode & 0x00F0)>>4];
+                    break;
+                case  0x6:
+                    //8xy6 - If LSB of Vx is 1, set Vf and LSR Vx 
+                    V[16] = (V[(opcode & 0x0F00)>>8] & 0x0001) > 0 ? 1 : 0;
+                    V[(opcode & 0x0F00)>>8] = V[(opcode & 0x0F00)>>8] >> 1; //LSR = Divide by 2
+                    break;
+                case 0x7:
+                    //8xy7 - Set Vx = Vy - Vx with NOT borrow on V16 
+                    V[16] = V[(opcode & 0x00F0)>>8] > V[(opcode & 0x0F00)>>4] ? 1 : 0;
+                    V[(opcode & 0x0F00)>>8] = V[(opcode & 0x00F0)>>8] - V[(opcode & 0x0F00)>>4];
+                    break;
+                case 0xE:
+                    //8xy6 - If MSB of Vx is 1, set Vf and LSR Vx 
+                    V[16] = (V[(opcode & 0x0F00)>>8] & 0x8000) > 0 ? 1 : 0;
+                    V[(opcode & 0x0F00)>>8] = V[(opcode & 0x0F00)>>8] << 1; //LSL = Multiply by 2
+                    break;
             }
             pc +=2;
             break;
