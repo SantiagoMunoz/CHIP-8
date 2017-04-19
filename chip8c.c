@@ -18,8 +18,10 @@ char *word;
 char *word2;
 unsigned short instruction;
 int line;
-if(argc < 2){
-        printf("Usage: chip8c <filename>\n");
+FILE *out;
+    
+    if(argc < 2){
+        printf("Usage: chip8c <input file> <output file>\n");
         return 1;
     }
     FILE *in = fopen(argv[1], "r");
@@ -30,12 +32,16 @@ if(argc < 2){
     printf("Compiling file ");
     printf(argv[1]);
     printf("\n");
-    FILE *out = fopen("program.out","wb");
+    if(argc == 3){
+        out = fopen(argv[2],"wb");
+    }else{
+        out = fopen("program.out","wb");
+        printf("Saving binary with name program.out\n");
+    }
     if(out == NULL){
         printf("Unable to create or open output file\n");
         return 1;
     }
-    printf("Saving binary with name program.out\n");
     linebuffer = (char*)malloc(256*sizeof(char)); //Just in case there are comments
     line = 0;
     while(fgets(linebuffer, 256,in) !=NULL){
