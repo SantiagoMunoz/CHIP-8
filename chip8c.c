@@ -19,7 +19,7 @@ char *word2;
 unsigned short instruction;
 int line;
 FILE *out;
-    
+
     if(argc < 2){
         printf("Usage: chip8c <input file> <output file>\n");
         return 1;
@@ -49,14 +49,14 @@ FILE *out;
         //Get first word
         word = strtok(linebuffer," ,"); //Only the first tokenize needs this. From now on strtok(NULL, " ,");
         if(0==strcmp(word,"CLS")){
-           instruction = 0x00E0; 
+           instruction = 0x00E0;
         }else if(0==strcmp(word,"RET")){
             instruction = 0x00EE;
         }else if(0==strcmp(word,"SYS")){
             instruction = 0x0000;
             word = strtok(NULL," ,"); //Word now contains addr
             instruction |= (char2us(word[0])*256) + (char2us(word[1])*16) + (char2us(word[2]));
-            printf("(Line %d) Warning! SYS is deprecated and ignored by most interpreters\n", line); 
+            printf("(Line %d) Warning! SYS is deprecated and ignored by most interpreters\n", line);
         }else if(strcmp(word,"JP")){
             instruction = 0x1000;
             word = strtok(NULL," ,"); //Word now contains addr
@@ -97,7 +97,7 @@ FILE *out;
                 instruction |= char2us(word[1])*256 + char2us(word2[1])*16;
             }else{
                 instruction = 0x4000; //0x4XKK
-                instruction |= (char2us(word[2])*256) +(char2us(word[1])*16) + (char2us(word[2])); 
+                instruction |= (char2us(word[2])*256) +(char2us(word[1])*16) + (char2us(word[2]));
             }
         }else if(0==strcmp(word,"LD")){
             word = strtok(NULL," ,"); //Word now contains Vx
@@ -134,7 +134,50 @@ FILE *out;
                 instruction |= char2us(word[1])*256 + char2us(word2[0])*16 + char2us(word2[1]);
             }
         }else if(0==strcmp(word,"LD")){
-
+            word = strtok(null," ,");
+            word2 = strtok(null," ,");
+            if(word[0] == 'V'){
+                if(word2[0] == 'D'){
+                    instruction = 0xF007;
+                    instruction |= char2us(word[1])*256;
+                }else if(word2[0] == 'K'){
+                    instruction = 0xF00A;
+                    instruction |= char2us(word[1])*256;
+                }else if(word2[0] == '['){
+                    instruction = 0xF065;
+                    instruction |= char2us(word[1])*256;
+                }else{
+                    printf("(Line %d)Error! Invalid second argument for instruction LD\n");
+                    free(linebuffer);
+                    fclose(in);
+                    fclose(out);
+                    return 1;
+                }
+            }else if(word[0] == 'I'){
+                instruction = 0xA000;
+                instruction |= char2us(word2[0])*256 + char2us(word2[1])*16 + char2us(word2[2]);
+            }else if(word[0] == 'D'){
+                instruction = 0xF015;
+                instruction |= char2us(word2[1])*256;
+            }else if(word[0] == 'S'){
+                instruction = 0xF018;
+                instruction |= char2us(word2[1])*256;
+            }else if(word[0] == 'F'){
+                instruction = 0xF029;
+                instruction |= char2us(word2[1])*256;
+            }else if(word[0] == 'B'){
+                instruction = 0xF033;
+                instruction |= char2us(word2[1])*256;
+            }else if(word[0] == '['){
+                instruction = 0xF055;
+                instruction |= char2us(word2[1])*256;
+            }else{
+                printf("(Line %d)Error! Invalid first argument for instruction LD\n");
+                free(linebuffer);
+                fclose(in);
+                fclose(out);
+                return 1;
+            }
 
 
 

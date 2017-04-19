@@ -43,6 +43,7 @@ void update_screen();        //Update the screen
 void input();       //Update keyboard status
 
 unsigned char running;
+
 int main(int argc, char **argv){
 
 clock_t local_time;
@@ -465,6 +466,7 @@ for(j=0;j<32;j++){
     SDL_RenderCopy(ren, tex, NULL, NULL);
     SDL_RenderPresent(ren);
 }
+
 void input(){
     //Update keyboard status
     while( (SDL_PollEvent(&event)) ){
