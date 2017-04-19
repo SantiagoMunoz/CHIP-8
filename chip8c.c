@@ -100,25 +100,38 @@ FILE *out;
                 instruction |= (char2us(word[0])*256) +(char2us(word[1])*16) + (char2us(word[0])); 
             }
         }else if(strcmp(word,"LD")){
-         
-
+            word = strtok(NULL," ,"); //Word now contains Vx
+            if(word[0] != 'V'){
+                printf("(Line %d)Error! LD always expect a register as first argument\n", line);
+                free(linebuffer);
+                fclose(in);
+                fclose(out);
+                return 1;
+           }
+           word2 = strtok(NULL, " ,");
+           if(word2[0] == 'V'){
+                instruction = 0x8000; // 0x8xy0
+                instruction |= char2us(word[1])*256 + char2us(word2[1]*16;
+           }else{
+                instruction |= char2us(word[1])*256 + char2us(word2[1])*16 + char2us(word2[0]);
+           }
         }else if(strcmp(word,"OR")){
 
 
-    
+
         /* Other instructions...
-         
-        }else if(strcmp(word,"XXX")){ 
+
+        }else if(strcmp(word,"XXX")){
          ...
          ...
          */
         }else{
-            printf("Found an error in the program. Exiting...\n");    
+            printf("Found an error in the program. Exiting...\n");
             free(linebuffer);
             fclose(in);
             fclose(out);
             return 1;
-        } 
+        }
         fwrite(&instruction, 2, 1, out);// memory position of instructiom, 2 bytes long, 1 element and into output file
     } //end while
 
