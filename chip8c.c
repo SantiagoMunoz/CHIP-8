@@ -48,11 +48,11 @@ FILE *out;
         line += 1;
         //Get first word
         word = strtok(linebuffer," ,"); //Only the first tokenize needs this. From now on strtok(NULL, " ,");
-        if(strcmp(word,"CLS")){
+        if(0==strcmp(word,"CLS")){
            instruction = 0x00E0; 
-        }else if(strcmp(word,"RET")){
+        }else if(0==strcmp(word,"RET")){
             instruction = 0x00EE;
-        }else if(strcmp(word,"SYS")){
+        }else if(0==strcmp(word,"SYS")){
             instruction = 0x0000;
             word = strtok(NULL," ,"); //Word now contains addr
             instruction |= (char2us(word[0])*256) + (char2us(word[1])*16) + (char2us(word[2]));
@@ -61,11 +61,11 @@ FILE *out;
             instruction = 0x1000;
             word = strtok(NULL," ,"); //Word now contains addr
             instruction |= (char2us(word[0])*256) + (char2us(word[1])*16) + (char2us(word[2]));
-        }else if(strcmp(word,"CALL")){
+        }else if(0==strcmp(word,"CALL")){
             instruction = 0x2000;
             word = strtok(NULL," ,"); //Word now contains addr
             instruction |= (char2us(word[0])*256) + (char2us(word[1])*16) + (char2us(word[2]));
-        }else if(strcmp(word,"SE")){
+        }else if(0==strcmp(word,"SE")){
             word = strtok(NULL," ,"); //Word now contains Vx
             if (word[0] != 'V'){
                 printf("(Line %d) Error! SE Always expects a register as first argument\n",line);
@@ -82,7 +82,7 @@ FILE *out;
                 instruction = 0x3000; //0x3XKK
                 instruction |= (char2us(word[1])*256 + (char2us(word2[0]))*16 + (char2us(word2[1]));
             }
-        }else if(strcmp(word,"SNE")){
+        }else if(0==strcmp(word,"SNE")){
             word = strtok(NULL," ,"); //Word now contains Vx
             if(word[0] != 'V'){
                 printf("(Line %d)Error! SNE expects a register as first argument\n",line);
@@ -99,23 +99,42 @@ FILE *out;
                 instruction = 0x4000; //0x4XKK
                 instruction |= (char2us(word[2])*256) +(char2us(word[1])*16) + (char2us(word[2])); 
             }
-        }else if(strcmp(word,"LD")){
+        }else if(0==strcmp(word,"LD")){
             word = strtok(NULL," ,"); //Word now contains Vx
             if(word[0] != 'V'){
-                printf("(Line %d)Error! LD always expect a register as first argument\n", line);
+                printf("(Line %d)Error! LD always expects a register as first argument\n", line);
                 free(linebuffer);
                 fclose(in);
                 fclose(out);
                 return 1;
            }
-           word2 = strtok(NULL, " ,");
+           word2 = strtok(NULL," ,");
            if(word2[0] == 'V'){
                 instruction = 0x8000; // 0x8xy0
                 instruction |= char2us(word[1])*256 + char2us(word2[1]*16;
            }else{
+                instruction = 0x6000; // 0x6000
                 instruction |= char2us(word[1])*256 + char2us(word2[0])*16 + char2us(word2[1]);
            }
-        }else if(strcmp(word,"OR")){
+        }else if(0==strcmp(word,"ADD")){
+            word = strtok(NULL," ,"); //Word now contains Vx
+            if(word[0] != 'V'){
+                printf("(Line %d)Error! ADD always expects a register as first argument\n", line);
+                free(linebuffer);
+                fclose(in);
+                fclose(out);
+                return 1;
+            }
+            word2 = strtok(NULL," ,");
+            if(word2[0] == 'V'){
+                instruction = 0x8004; //0x8xy4
+                instruction |= char2us(word[1])*256 + char2us(word2[1])*16;
+            }else{
+                instruction = 0x7000; //0x7xkk
+                instruction |= char2us(word[1])*256 + char2us(word2[0])*16 + char2us(word2[1]);
+            }
+        }else if(0==strcmp(word,"LD")){
+
 
 
 
