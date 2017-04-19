@@ -178,7 +178,66 @@ FILE *out;
                 fclose(out);
                 return 1;
             }
-
+        }else if(0==strcmp(word,"OR")){
+            word = strtok(NULL, " ,");
+            word2 = strtok(NULL, " ,");
+            if( (word[0] != 'V') | (word2[0] != 'V') ){
+                printf("(Line %d)Error! OR can only take registers as arguments\n");
+                free(linebuffer);
+                fclose(in);
+                fclose(out);
+                return 1;
+            }
+            instruction = 0x8001;
+            instruction |= char2us(word[1]) * 256 + char2us(word2[1]);
+        }else if(0==strcmp(word,"AND")){
+            word = strtok(NULL, " ,");
+            word2 = strtok(NULL, " ,");
+            if( (word[0] != 'V') | (word2[0] != 'V') ){
+                printf("(Line %d)Error! AND can only take registers as arguments\n");
+                free(linebuffer);
+                fclose(in);
+                fclose(out);
+                return 1;
+            }
+            instruction = 0x8002;
+            instruction |= char2us(word[1]) * 256 + char2us(word2[1]);
+        }else if(0==strcmp(word,"XOR")){
+            word = strtok(NULL, " ,");
+            word2 = strtok(NULL, " ,");
+            if( (word[0] != 'V') | (word2[0] != 'V') ){
+                printf("(Line %d)Error! XOR can only take registers as arguments\n");
+                free(linebuffer);
+                fclose(in);
+                fclose(out);
+                return 1;
+            }
+            instruction = 0x8003;
+            instruction |= char2us(word[1]) * 256 + char2us(word2[1]);
+        }else if(0==strcmp(word,"AND")){
+            word = strtok(NULL, " ,");
+            word2 = strtok(NULL, " ,");
+            if( (word[0] != 'V') | (word2[0] != 'V') ){
+                printf("(Line %d)Error! XOR can only take registers as arguments\n");
+                free(linebuffer);
+                fclose(in);
+                fclose(out);
+                return 1;
+            }
+            instruction = 0x8004;
+            instruction |= char2us(word[1]) * 256 + char2us(word2[1]);
+        }else if(0==strcmp(word,"SUB")){
+            word = strtok(NULL, " ,");
+            word2 = strtok(NULL, " ,");
+            if( (word[0] != 'V') | (word2[0] != 'V') ){
+                printf("(Line %d)Error! SUB can only take registers as arguments\n");
+                free(linebuffer);
+                fclose(in);
+                fclose(out);
+                return 1;
+            }
+            instruction = 0x8005;
+            instruction |= char2us(word[1]) * 256 + char2us(word2[1]);
 
 
         /* Other instructions...
