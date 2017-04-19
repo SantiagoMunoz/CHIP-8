@@ -56,6 +56,7 @@ FILE *out;
             instruction = 0x0000;
             word = strtok(NULL," ,"); //Word now contains addr
             instruction |= (char2us(word[2])*256) + (char2us(word[1])*16) + (char2us(word[0]));
+            printf("(Line %d) Warning! SYS is deprecated and ignored by most interpreters\n", line); 
         }else if(strcmp(word,"JP")){
             instruction = 0x1000;
             word = strtok(NULL," ,"); //Word now contains addr
@@ -67,7 +68,7 @@ FILE *out;
         }else if(strcmp(word,"SE")){
             word = strtok(NULL," ,"); //Word now contains Vx
             if (word[0] != 'V'){
-                printf("Error at line %d, expected register argument\n",line);
+                printf("(Line %d) Error! SE Always expects a register as first argument\n",line);
                 free(linebuffer);
                 fclose(in);
                 fclose(out);
@@ -76,15 +77,15 @@ FILE *out;
             word2 = strtok(NULL," ,"); //Word2 now contains byte or Vy
             if(word2[0] =='V'){
                 instruction = 0x5000; //0x5XY0
-                instruction |= char2us(word[1])<< 8 + char2us(word2[1])<< 4;
+                instruction |= char2us(word[1])*256 + char2us(word2[1])*16;
             }else{
                 instruction = 0x3000; //0x3XKK
-                instruction |= (char2us(word[1])<<8) + (char2us(word2[1])) + (char2us(word2[0]));
+                instruction |= (char2us(word[1])*256 + (char2us(word2[1]))*16 + (char2us(word2[0]));
             }
         }else if(strcmp(word,"SNE")){
             word = strtok(NULL," ,"); //Word now contains Vx
             if(word[0] != 'V'){
-                printf("Error at line %d, expected register argument\n",line);
+                printf("(Line %d)Error! SNE expects a register as first argument\n",line);
                 free(linebuffer);
                 fclose(in);
                 fclose(out);
