@@ -55,16 +55,16 @@ FILE *out;
         }else if(strcmp(word,"SYS")){
             instruction = 0x0000;
             word = strtok(NULL," ,"); //Word now contains addr
-            instruction |= (char2us(word[2])*256) + (char2us(word[1])*16) + (char2us(word[0]));
+            instruction |= (char2us(word[0])*256) + (char2us(word[1])*16) + (char2us(word[2]));
             printf("(Line %d) Warning! SYS is deprecated and ignored by most interpreters\n", line); 
         }else if(strcmp(word,"JP")){
             instruction = 0x1000;
             word = strtok(NULL," ,"); //Word now contains addr
-            instruction |= (char2us(word[2])*256) + (char2us(word[1])*16) + (char2us(word[0]));
+            instruction |= (char2us(word[0])*256) + (char2us(word[1])*16) + (char2us(word[2]));
         }else if(strcmp(word,"CALL")){
             instruction = 0x2000;
             word = strtok(NULL," ,"); //Word now contains addr
-            instruction |= (char2us(word[2])*256) + (char2us(word[1])*16) + (char2us(word[0]));
+            instruction |= (char2us(word[0])*256) + (char2us(word[1])*16) + (char2us(word[2]));
         }else if(strcmp(word,"SE")){
             word = strtok(NULL," ,"); //Word now contains Vx
             if (word[0] != 'V'){
@@ -80,7 +80,7 @@ FILE *out;
                 instruction |= char2us(word[1])*256 + char2us(word2[1])*16;
             }else{
                 instruction = 0x3000; //0x3XKK
-                instruction |= (char2us(word[1])*256 + (char2us(word2[1]))*16 + (char2us(word2[0]));
+                instruction |= (char2us(word[1])*256 + (char2us(word2[0]))*16 + (char2us(word2[1]));
             }
         }else if(strcmp(word,"SNE")){
             word = strtok(NULL," ,"); //Word now contains Vx
@@ -97,7 +97,7 @@ FILE *out;
                 instruction |= char2us(word[1])*256 + char2us(word2[1])*16;
             }else{
                 instruction = 0x4000; //0x4XKK
-                instruction |= (char2us(word[0])*256) +(char2us(word[1])*16) + (char2us(word[0])); 
+                instruction |= (char2us(word[2])*256) +(char2us(word[1])*16) + (char2us(word[2])); 
             }
         }else if(strcmp(word,"LD")){
             word = strtok(NULL," ,"); //Word now contains Vx
@@ -113,7 +113,7 @@ FILE *out;
                 instruction = 0x8000; // 0x8xy0
                 instruction |= char2us(word[1])*256 + char2us(word2[1]*16;
            }else{
-                instruction |= char2us(word[1])*256 + char2us(word2[1])*16 + char2us(word2[0]);
+                instruction |= char2us(word[1])*256 + char2us(word2[0])*16 + char2us(word2[1]);
            }
         }else if(strcmp(word,"OR")){
 
