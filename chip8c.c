@@ -238,6 +238,20 @@ FILE *out;
             }
             instruction = 0x8005;
             instruction |= char2us(word[1]) * 256 + char2us(word2[1]);
+        }else if(0==srtcmp(word,"SHR")){
+            word = strtok(NULL, " ,");
+            word2 = strtok(NULL, " ,");
+            if( (word[0] != 'V') | (word2[0] != 'V') ){
+                printf("(Line %d)Error! SHR can only take registers as arguments\n");
+                free(linebuffer);
+                fclose(in);
+                fclose(out);
+                return 1;
+            }
+            instruction = 0x8006;
+            instruction |= char2us(word[1]) * 256 + char2us(word2[1]);
+
+
 
 
         /* Other instructions...

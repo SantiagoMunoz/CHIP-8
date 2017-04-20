@@ -1,0 +1,3 @@
+This is a collection of test programs made for testing and for fun:
+
+    addition - Loads values into V1 and V2 and adds them. Set V3 to 1 if the result is correct.

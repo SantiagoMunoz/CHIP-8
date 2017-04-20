@@ -1,0 +1,9 @@
+LD V1, 4
+LD V2, 4
+ADD V1, V2
+SE V1, 8
+JP 8
+LD V3, 1
+JP 7
+LD V3, 0
+JP 9
