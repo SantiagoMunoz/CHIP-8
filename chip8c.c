@@ -11,13 +11,37 @@
 
 unsigned short char2us(char input);
 
+unsigned short parse_instruction();
+
+unsigned short parse_CLS();
+unsigned short parse_RET();
+unsigned short parse_SYS();
+unsigned short parse_JP();
+unsigned short parse_CALL();
+unsigned short parse_SE();
+unsigned short parse_SNE();
+unsigned short parse_LD();
+unsigned short parse_ADD();
+unsigned short parse_OR();
+unsigned short parse_AND();
+unsigned short parse_XOR();
+unsigned short parse_SUB();
+unsigned short parse_SHR();
+unsigned short parse_SUBN();
+unsigned short parse_SHL();
+unsigned short parse_RND();
+unsigned short parse_DRW();
+unsigned short parse_SKP();
+unsigned short parse_SKPN();
+
+int line;
+char *linebuffer;
+
 int main(int argc, char **argv){
 
-char *linebuffer;
 char *word;
 char *word2;
 unsigned short instruction;
-int line;
 FILE *out;
 
     if(argc < 2){
@@ -44,239 +68,29 @@ FILE *out;
     }
     linebuffer = (char*)malloc(256*sizeof(char)); //Just in case there are comments
     line = 0;
+
     while(fgets(linebuffer, 256,in) !=NULL){
         line += 1;
-        //Get first word
-        word = strtok(linebuffer," ,"); //Only the first tokenize needs this. From now on strtok(NULL, " ,");
-        if(0==strcmp(word,"CLS")){
-           instruction = 0x00E0;
-        }else if(0==strcmp(word,"RET")){
-            instruction = 0x00EE;
-        }else if(0==strcmp(word,"SYS")){
-            instruction = 0x0000;
-            word = strtok(NULL," ,"); //Word now contains addr
-            instruction |= (char2us(word[0])*256) + (char2us(word[1])*16) + (char2us(word[2]));
-            printf("(Line %d) Warning! SYS is deprecated and ignored by most interpreters\n", line);
-        }else if(strcmp(word,"JP")){
-            instruction = 0x1000;
-            word = strtok(NULL," ,"); //Word now contains addr
-            instruction |= (char2us(word[0])*256) + (char2us(word[1])*16) + (char2us(word[2]));
-        }else if(0==strcmp(word,"CALL")){
-            instruction = 0x2000;
-            word = strtok(NULL," ,"); //Word now contains addr
-            instruction |= (char2us(word[0])*256) + (char2us(word[1])*16) + (char2us(word[2]));
-        }else if(0==strcmp(word,"SE")){
-            word = strtok(NULL," ,"); //Word now contains Vx
-            if (word[0] != 'V'){
-                printf("(Line %d) Error! SE Always expects a register as first argument\n",line);
-                free(linebuffer);
-                fclose(in);
-                fclose(out);
-                return 1;
-            }
-            word2 = strtok(NULL," ,"); //Word2 now contains byte or Vy
-            if(word2[0] =='V'){
-                instruction = 0x5000; //0x5XY0
-                instruction |= char2us(word[1])*256 + char2us(word2[1])*16;
-            }else{
-                instruction = 0x3000; //0x3XKK
-                instruction |= (char2us(word[1])*256 + (char2us(word2[0]))*16 + (char2us(word2[1]));
-            }
-        }else if(0==strcmp(word,"SNE")){
-            word = strtok(NULL," ,"); //Word now contains Vx
-            if(word[0] != 'V'){
-                printf("(Line %d)Error! SNE expects a register as first argument\n",line);
-                free(linebuffer);
-                fclose(in);
-                fclose(out);
-                return 1;
-            }
-            word2 = strtok(NULL," ,");
-            if(word2[0] == 'V'){
-                instruction = 0x9000; //0x9XY0
-                instruction |= char2us(word[1])*256 + char2us(word2[1])*16;
-            }else{
-                instruction = 0x4000; //0x4XKK
-                instruction |= (char2us(word[2])*256) +(char2us(word[1])*16) + (char2us(word[2]));
-            }
-        }else if(0==strcmp(word,"LD")){
-            word = strtok(NULL," ,"); //Word now contains Vx
-            if(word[0] != 'V'){
-                printf("(Line %d)Error! LD always expects a register as first argument\n", line);
-                free(linebuffer);
-                fclose(in);
-                fclose(out);
-                return 1;
-           }
-           word2 = strtok(NULL," ,");
-           if(word2[0] == 'V'){
-                instruction = 0x8000; // 0x8xy0
-                instruction |= char2us(word[1])*256 + char2us(word2[1]*16;
-           }else{
-                instruction = 0x6000; // 0x6000
-                instruction |= char2us(word[1])*256 + char2us(word2[0])*16 + char2us(word2[1]);
-           }
-        }else if(0==strcmp(word,"ADD")){
-            word = strtok(NULL," ,"); //Word now contains Vx
-            if(word[0] != 'V'){
-                printf("(Line %d)Error! ADD always expects a register as first argument\n", line);
-                free(linebuffer);
-                fclose(in);
-                fclose(out);
-                return 1;
-            }
-            word2 = strtok(NULL," ,");
-            if(word2[0] == 'V'){
-                instruction = 0x8004; //0x8xy4
-                instruction |= char2us(word[1])*256 + char2us(word2[1])*16;
-            }else{
-                instruction = 0x7000; //0x7xkk
-                instruction |= char2us(word[1])*256 + char2us(word2[0])*16 + char2us(word2[1]);
-            }
-        }else if(0==strcmp(word,"LD")){
-            word = strtok(null," ,");
-            word2 = strtok(null," ,");
-            if(word[0] == 'V'){
-                if(word2[0] == 'D'){
-                    instruction = 0xF007;
-                    instruction |= char2us(word[1])*256;
-                }else if(word2[0] == 'K'){
-                    instruction = 0xF00A;
-                    instruction |= char2us(word[1])*256;
-                }else if(word2[0] == '['){
-                    instruction = 0xF065;
-                    instruction |= char2us(word[1])*256;
-                }else{
-                    printf("(Line %d)Error! Invalid second argument for instruction LD\n");
-                    free(linebuffer);
-                    fclose(in);
-                    fclose(out);
-                    return 1;
-                }
-            }else if(word[0] == 'I'){
-                instruction = 0xA000;
-                instruction |= char2us(word2[0])*256 + char2us(word2[1])*16 + char2us(word2[2]);
-            }else if(word[0] == 'D'){
-                instruction = 0xF015;
-                instruction |= char2us(word2[1])*256;
-            }else if(word[0] == 'S'){
-                instruction = 0xF018;
-                instruction |= char2us(word2[1])*256;
-            }else if(word[0] == 'F'){
-                instruction = 0xF029;
-                instruction |= char2us(word2[1])*256;
-            }else if(word[0] == 'B'){
-                instruction = 0xF033;
-                instruction |= char2us(word2[1])*256;
-            }else if(word[0] == '['){
-                instruction = 0xF055;
-                instruction |= char2us(word2[1])*256;
-            }else{
-                printf("(Line %d)Error! Invalid first argument for instruction LD\n");
-                free(linebuffer);
-                fclose(in);
-                fclose(out);
-                return 1;
-            }
-        }else if(0==strcmp(word,"OR")){
-            word = strtok(NULL, " ,");
-            word2 = strtok(NULL, " ,");
-            if( (word[0] != 'V') | (word2[0] != 'V') ){
-                printf("(Line %d)Error! OR can only take registers as arguments\n");
-                free(linebuffer);
-                fclose(in);
-                fclose(out);
-                return 1;
-            }
-            instruction = 0x8001;
-            instruction |= char2us(word[1]) * 256 + char2us(word2[1]);
-        }else if(0==strcmp(word,"AND")){
-            word = strtok(NULL, " ,");
-            word2 = strtok(NULL, " ,");
-            if( (word[0] != 'V') | (word2[0] != 'V') ){
-                printf("(Line %d)Error! AND can only take registers as arguments\n");
-                free(linebuffer);
-                fclose(in);
-                fclose(out);
-                return 1;
-            }
-            instruction = 0x8002;
-            instruction |= char2us(word[1]) * 256 + char2us(word2[1]);
-        }else if(0==strcmp(word,"XOR")){
-            word = strtok(NULL, " ,");
-            word2 = strtok(NULL, " ,");
-            if( (word[0] != 'V') | (word2[0] != 'V') ){
-                printf("(Line %d)Error! XOR can only take registers as arguments\n");
-                free(linebuffer);
-                fclose(in);
-                fclose(out);
-                return 1;
-            }
-            instruction = 0x8003;
-            instruction |= char2us(word[1]) * 256 + char2us(word2[1]);
-        }else if(0==strcmp(word,"AND")){
-            word = strtok(NULL, " ,");
-            word2 = strtok(NULL, " ,");
-            if( (word[0] != 'V') | (word2[0] != 'V') ){
-                printf("(Line %d)Error! XOR can only take registers as arguments\n");
-                free(linebuffer);
-                fclose(in);
-                fclose(out);
-                return 1;
-            }
-            instruction = 0x8004;
-            instruction |= char2us(word[1]) * 256 + char2us(word2[1]);
-        }else if(0==strcmp(word,"SUB")){
-            word = strtok(NULL, " ,");
-            word2 = strtok(NULL, " ,");
-            if( (word[0] != 'V') | (word2[0] != 'V') ){
-                printf("(Line %d)Error! SUB can only take registers as arguments\n");
-                free(linebuffer);
-                fclose(in);
-                fclose(out);
-                return 1;
-            }
-            instruction = 0x8005;
-            instruction |= char2us(word[1]) * 256 + char2us(word2[1]);
-        }else if(0==srtcmp(word,"SHR")){
-            word = strtok(NULL, " ,");
-            word2 = strtok(NULL, " ,");
-            if( (word[0] != 'V') | (word2[0] != 'V') ){
-                printf("(Line %d)Error! SHR can only take registers as arguments\n");
-                free(linebuffer);
-                fclose(in);
-                fclose(out);
-                return 1;
-            }
-            instruction = 0x8006;
-            instruction |= char2us(word[1]) * 256 + char2us(word2[1]);
-
-
-
-
-        /* Other instructions...
-
-        }else if(strcmp(word,"XXX")){
-         ...
-         ...
-         */
+        instruction = parse_instruction(linebuffer);
+        if(instruction != 0xFFFF){
+        fwrite(&instruction, 2, 1, out);// memory position of instructiom, 2 bytes long, 1 element and into output file
         }else{
-            printf("Found an error in the program. Exiting...\n");
-            free(linebuffer);
+            printf("Encountered irrecoverable error, aborting compilation...\n");
             fclose(in);
             fclose(out);
+            free(linebuffer);
             return 1;
         }
-        fwrite(&instruction, 2, 1, out);// memory position of instructiom, 2 bytes long, 1 element and into output file
-    } //end while
-
+    }
+    
     free(linebuffer);
     fclose(in);
     fclose(out);
+
     return 0;
 }
 
-unsigned short char2us(char input){
+unsigned char char2byte(char input){
 
     switch(input){
         case '0':
@@ -313,5 +127,340 @@ unsigned short char2us(char input){
             return 15;
     }
     return 0;
+}
+
+unsigned short parse_instruction(char *linebuffer){
+    char *buffer = strtok(linebuffer," ,"); //Only the first tokenize needs this. From now on strtok(NULL, " ,");
+    
+    if(strcmp(buffer, "CLK")){
+        return parse_CLS();
+    }else if(strcmp(buffer, "RET")){
+        return parse_RET();
+    }else if(strcmp(buffer, "SYS")){
+        return parse_SYS();
+    }else if(strcmp(buffer, "JP")){
+        return parse_JP();
+    }else if(strcmp(buffer, "CALL")){
+        return parse_CALL();
+    }else if(strcmp(buffer, "SE")){
+        return parse_SE();
+    }else if(strcmp(buffer, "SNE")){
+        return parse_SNE();
+    }else if(strcmp(buffer, "LD")){
+        return parse_LD();
+    }else if(strcmp(buffer, "ADD")){
+        return parse_ADD();
+    }else if(strcmp(buffer, "OR")){
+        return parse_OR();
+    }else if(strcmp(buffer, "AND")){
+        return parse_AND();
+    }else if(strcmp(buffer, "XOR")){
+        return parse_XOR();
+    }else if(strcmp(buffer, "SUB")){
+        return parse_SUB();
+    }else if(strcmp(buffer, "SHR")){
+        return parse_SHR();
+    }else if(strcmp(buffer, "SUBN")){
+        return parse_SUBN();
+    }else if(strcmp(buffer, "SHL")){
+        return parse_SHL();
+    }else if(strcmp(buffer, "RND")){
+        return parse_RND();
+    }else if(strcmp(buffer, "DRW")){
+        return parse_DRW();
+    }else if(strcmp(buffer, "SKP")){
+        return parse_SKP();
+    }else if(strcmp(buffer, "SKPN")){
+        return parse_SKPN();
+    }else{
+        return 0xFFFF;
+    }
+}
+
+unsigned short parse_CLS(){ 
+    return 0x00E0;
+}
+unsigned short parse_RET(){
+    return 0x00EE;
+}
+unsigned short parse_SYS(){
+    unsigned short instruction = 0x0000;
+    char *addr;
+
+    addr = strtok(linebuffer, " ,");
+    addr = strtok(NULL, " ,");
+    instruction |= (char2byte(addr[0]) & 0x0F) << 8;
+    instruction |= (char2byte(addr[1]) & 0x0F) << 4;
+    instruction |= (char2byte(addr[2]) & 0x0F) << 0;
+    
+    return instruction;
+}
+unsigned short parse_JP(){
+    unsigned short instruction;
+    char *arg;
+
+    arg = strtok(linebuffer, " ,");
+    arg = strtok(NULL, " ,");
+
+    if(arg[0] = 'V'){
+        instruction = 0xB000;
+        arg = strtok(NULL, " ,");
+        instruction |= (char2byte(arg[0]) & 0x0F) << 8;
+        instruction |= (char2byte(arg[1]) & 0x0F) << 4;
+        instruction |= (char2byte(arg[2]) & 0x0F) << 0;
+    }else{
+        instruction = 0x1000;
+        instruction |= (char2byte(arg[0]) & 0x0F) << 8;
+        instruction |= (char2byte(arg[1]) & 0x0F) << 4;
+        instruction |= (char2byte(arg[2]) & 0x0F) << 0;
+    }
+
+    return instruction;
+}
+unsigned short parse_CALL(){
+    unsigned short instruction = 0x2000;
+    char *addr;
+
+    addr = strtok(linebuffer, " ,");
+    addr = strtok(NULL, " ,");
+    instruction |= (char2byte(addr[0]) & 0x0F) << 8;
+    instruction |= (char2byte(addr[1]) & 0x0F) << 4;
+    instruction |= (char2byte(addr[2]) & 0x0F) << 0;
+    
+    return instruction;
+}
+
+unsigned short parse_SE(){
+    unsigned short instruction = 0x0000;
+    char *arg;
+
+    arg = strtok(linebuffer, " ,");
+    arg = strtok(NULL, " ,");
+    if(arg[0] != 'V'){
+        //TODO: Return error
+        return 0xFFFF;
+    }
+    instruction |= (char2byte(arg[1]) & 0x0F) << 8;
+    arg = strtok(NULL, " ,");
+    if(arg[0] == 'V'){
+        instruction |= 0x50000;
+        instruction |= (char2byte(arg[1]) & 0x0F) << 4;
+    }else{
+        instruction |= (char2byte(arg[0]) & 0x0F) << 4;
+        instruction |= (char2byte(arg[1]) & 0x0F) << 0;
+    }
+
+    return instruction;
+}
+unsigned short parse_SNE(){
+    unsigned short instruction = 0x0000;
+    char *arg;
+
+    arg = strtok(linebuffer, " ,");
+    arg = strtok(NULL, " .");
+    if(arg[0] != 'V'){
+        //TODO: Return error
+        return 0xFFFF;
+    }
+    instruction |= (char2byte(arg[1] & 0x0F) << 8;
+    arg = strtok(NULL, " ,");
+    if(arg[0] == 'V'){
+        instruction |= 0x9000;
+        instruction |= (char2byte(arg[1]) & 0x0F) << 4;
+    }else{
+        instruction |= 0x4000;
+        instruction |= (char2byte(arg[0]) & 0x0F) << 4;
+        instruction |= (char2byte(arg[1]) & 0x0F) << 0;
+    }
+    return instruction;
+}
+unsigned short parse_LD();
+unsigned short parse_ADD(){
+    unsigned short instruction = 0x0000;
+    char *arg;
+
+    arg = strtok(linebuffer, " ,");
+    arg = strtok(NULL, " ,");
+    if(arg[0] == I){
+        instruction = 0xF01E;
+        arg = strtok(NULL, " ,");
+        instruction |= (char2byte(arg[1]) & 0x0F) << 8;
+    }else{
+        if(arg[0] != 'V'){
+            //TODO: Report error
+            return 0xFFFF;
+        }
+        instruction |= (char2byte(arg[1]) & 0x0F) << 8;
+        arg = strtok(NULL, " ,");
+        if(arg[0] == 'V'){
+            instruction |= 0x8004;
+            instruction |= (char2byte(arg[1]) & 0x0F) << 4;
+        }else{
+            instruction |= 0xA000;
+            instruction |= (char2byte(arg[0]) & 0x0F) << 4;
+            instruction |= (char2byte(arg[1]) & 0x0F) << 0;
+        }
+    }
+
+    return instruction;
+}
+unsigned short parse_OR(){
+    unsigned short instruction = 0x8001;
+    char *arg;
+
+    arg = strtok(linebuffer, " ,");
+    arg = strtok(NULL, " ,");
+    
+    if(arg[0] != 'V'){
+        //TODO: Report error
+        return 0xFFFF;
+    }
+    instruction |= (char2byte(arg[1]) << 8;
+    arg = strtok(NULL, " ,");
+    if(arg[0] != 'V'){
+        //TODO: Report error
+        return 0xFFFF;
+    }
+    instruction |= (char2byte(arg[1]) << 4;
+
+    return instruction; 
+}
+unsigned short parse_AND(){
+    unsigned short instruction = 0x8002;
+    char *arg;
+
+    arg = strtok(linebuffer, " ,");
+    arg = strtok(NULL, " ,");
+    
+    if(arg[0] != 'V'){
+        //TODO: Report error
+        return 0xFFFF;
+    }
+    instruction |= (char2byte(arg[1]) << 8;
+    arg = strtok(NULL, " ,");
+    if(arg[0] != 'V'){
+        //TODO: Report error
+        return 0xFFFF;
+    }
+    instruction |= (char2byte(arg[1]) << 4;
+
+    return instruction; 
+}
+unsigned short parse_XOR(){
+    unsigned short instruction = 0x8003;
+    char *arg;
+
+    arg = strtok(linebuffer, " ,");
+    arg = strtok(NULL, " ,");
+    
+    if(arg[0] != 'V'){
+        //TODO: Report error
+        return 0xFFFF;
+    }
+    instruction |= (char2byte(arg[1]) << 8;
+    arg = strtok(NULL, " ,");
+    if(arg[0] != 'V'){
+        //TODO: Report error
+        return 0xFFFF;
+    }
+    instruction |= (char2byte(arg[1]) << 4;
+
+    return instruction; 
+
+}
+unsigned short parse_SUB(){
+    unsigned short instruction = 0x8005;
+    char *arg;
+
+    arg = strtok(linebuffer, " ,");
+    arg = strtok(NULL, " ,");
+    
+    if(arg[0] != 'V'){
+        //TODO: Report error
+        return 0xFFFF;
+    }
+    instruction |= (char2byte(arg[1]) << 8;
+    arg = strtok(NULL, " ,");
+    if(arg[0] != 'V'){
+        //TODO: Report error
+        return 0xFFFF;
+    }
+    instruction |= (char2byte(arg[1]) << 4;
+
+    return instruction; 
+}
+unsigned short parse_SHR();
+unsigned short parse_SUBN(){
+    unsigned short instruction = 0x8007;
+    char *arg;
+
+    arg = strtok(linebuffer, " ,");
+    arg = strtok(NULL, " ,");
+    
+    if(arg[0] != 'V'){
+        //TODO: Report error
+        return 0xFFFF;
+    }
+    instruction |= (char2byte(arg[1]) << 8;
+    arg = strtok(NULL, " ,");
+    if(arg[0] != 'V'){
+        //TODO: Report error
+        return 0xFFFF;
+    }
+    instruction |= (char2byte(arg[1]) << 4;
+
+    return instruction; 
+
+}
+unsigned short parse_SHL();
+unsigned short parse_RND(){
+    unsigned short instruction = 0xC000;
+    char *arg;
+
+    arg = strtok(linebuffer, " ,");
+    arg = strtok(NULL, " ,");
+    if(arg[0] != 'V'){
+        //TODO: report error
+        return 0xFFFF;
+    }
+    instruction |= (char2byte(arg[1]) & 0x0F) << 8;
+
+    arg = strtok(NULL, " ,");
+    instruction |= (char2byte(arg[0]) & 0x0F) << 4;
+    instruction |= (char2byte(arg[1]) & 0x0F) << 0;
+
+    return instruction;
+}   
+unsigned short parse_DRW();
+unsigned short parse_SKP(){
+    unsigned short instruction = 0xE09E;
+    char *arg;
+
+    arg = strtok(linebuffer, " ,");
+    arg = strtok(NULL, " ,");
+    
+    if(arg[0] != 'V'){
+        //TODO: Report error
+        return 0xFFFF;
+    }
+    instruction |= (char2byte(arg[1]) << 8;
+
+    return instruction;
+}
+unsigned short parse_SKPN(){
+    unsigned short instruction = 0xE0A1;
+    char *arg;
+
+    arg = strtok(linebuffer, " ,");
+    arg = strtok(NULL, " ,");
+    
+    if(arg[0] != 'V'){
+        //TODO: Report error
+        return 0xFFFF;
+    }
+    instruction |= (char2byte(arg[1]) << 8;
+
+    return instruction;
+
 }
 
