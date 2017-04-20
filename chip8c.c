@@ -262,7 +262,7 @@ unsigned short parse_SNE(){
         //TODO: Return error
         return 0xFFFF;
     }
-    instruction |= (char2byte(arg[1] & 0x0F) << 8;
+    instruction |= (char2byte(arg[1] & 0x0F)) << 8;
     arg = strtok(NULL, " ,");
     if(arg[0] == 'V'){
         instruction |= 0x9000;
@@ -287,7 +287,7 @@ unsigned short parse_LD(){
             switch(arg[0]){
                 case 'V':
                     instruction |=  0x8000;
-                    instruction |= (char2byte(arg[1]) & 0x0F) <<4
+                    instruction |= (char2byte(arg[1]) & 0x0F) << 4;
                     break;
                 case 'D':
                     instruction |= 0xF007;
@@ -306,16 +306,16 @@ unsigned short parse_LD(){
         case 'I':
             instruction = 0xA000;
             arg = strtok(NULL, " ,");
-            instruction |= (char2byte(arg[0]) << 8;
-            instruction |= (char2byte(arg[1]) << 4;
-            instruction |= (char2byte(arg[2]) << 0;
+            instruction |= (char2byte(arg[0]) & 0x0F) << 8;
+            instruction |= (char2byte(arg[1]) & 0x0F) << 4;
+            instruction |= (char2byte(arg[2]) & 0x0F) << 0;
             break;
         case 'D':
             instruction |= 0xF015;
             arg = strtok(NULL, " ,");
             instruction |= (char2byte(arg[1]) & 0x0F) << 8;
             break;
-        case 'S'
+        case 'S':
             instruction |= 0xF018;
             arg = strtok(NULL, " ,");
             instruction |= (char2byte(arg[1]) & 0x0F) << 8;
@@ -348,7 +348,7 @@ unsigned short parse_ADD(){
 
     arg = strtok(linebuffer, " ,");
     arg = strtok(NULL, " ,");
-    if(arg[0] == I){
+    if(arg[0] == 'I'){
         instruction = 0xF01E;
         arg = strtok(NULL, " ,");
         instruction |= (char2byte(arg[1]) & 0x0F) << 8;
@@ -388,7 +388,7 @@ unsigned short parse_OR(){
         //TODO: Report error
         return 0xFFFF;
     }
-    instruction |= (char2byte(arg[1]) << 4;
+    instruction |= (char2byte(arg[1])) << 4;
 
     return instruction; 
 }
@@ -409,7 +409,7 @@ unsigned short parse_AND(){
         //TODO: Report error
         return 0xFFFF;
     }
-    instruction |= (char2byte(arg[1]) << 4;
+    instruction |= (char2byte(arg[1])) << 4;
 
     return instruction; 
 }
@@ -424,13 +424,13 @@ unsigned short parse_XOR(){
         //TODO: Report error
         return 0xFFFF;
     }
-    instruction |= (char2byte(arg[1]) << 8;
+    instruction |= (char2byte(arg[1])) << 8;
     arg = strtok(NULL, " ,");
     if(arg[0] != 'V'){
         //TODO: Report error
         return 0xFFFF;
     }
-    instruction |= (char2byte(arg[1]) << 4;
+    instruction |= (char2byte(arg[1])) << 4;
 
     return instruction; 
 
@@ -452,7 +452,7 @@ unsigned short parse_SUB(){
         //TODO: Report error
         return 0xFFFF;
     }
-    instruction |= (char2byte(arg[1]) << 4;
+    instruction |= (char2byte(arg[1])) << 4;
 
     return instruction; 
 }
@@ -489,13 +489,13 @@ unsigned short parse_SUBN(){
         //TODO: Report error
         return 0xFFFF;
     }
-    instruction |= (char2byte(arg[1]) << 8;
+    instruction |= (char2byte(arg[1])) << 8;
     arg = strtok(NULL, " ,");
     if(arg[0] != 'V'){
         //TODO: Report error
         return 0xFFFF;
     }
-    instruction |= (char2byte(arg[1]) << 4;
+    instruction |= (char2byte(arg[1])) << 4;
 
     return instruction; 
 
@@ -581,7 +581,7 @@ unsigned short parse_SKP(){
         //TODO: Report error
         return 0xFFFF;
     }
-    instruction |= (char2byte(arg[1]) << 8;
+    instruction |= (char2byte(arg[1]) & 0x0F) << 8;
 
     return instruction;
 }
@@ -596,7 +596,7 @@ unsigned short parse_SKPN(){
         //TODO: Report error
         return 0xFFFF;
     }
-    instruction |= (char2byte(arg[1]) << 8;
+    instruction |= (char2byte(arg[1])) << 8;
 
     return instruction;
 
