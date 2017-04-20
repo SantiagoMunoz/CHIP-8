@@ -382,7 +382,7 @@ unsigned short parse_OR(){
         //TODO: Report error
         return 0xFFFF;
     }
-    instruction |= (char2byte(arg[1]) << 8;
+    instruction |= (char2byte(arg[1])) << 8;
     arg = strtok(NULL, " ,");
     if(arg[0] != 'V'){
         //TODO: Report error
@@ -403,7 +403,7 @@ unsigned short parse_AND(){
         //TODO: Report error
         return 0xFFFF;
     }
-    instruction |= (char2byte(arg[1]) << 8;
+    instruction |= (char2byte(arg[1])) << 8;
     arg = strtok(NULL, " ,");
     if(arg[0] != 'V'){
         //TODO: Report error
@@ -446,7 +446,7 @@ unsigned short parse_SUB(){
         //TODO: Report error
         return 0xFFFF;
     }
-    instruction |= (char2byte(arg[1]) << 8;
+    instruction |= (char2byte(arg[1])) << 8;
     arg = strtok(NULL, " ,");
     if(arg[0] != 'V'){
         //TODO: Report error
@@ -456,7 +456,28 @@ unsigned short parse_SUB(){
 
     return instruction; 
 }
-unsigned short parse_SHR();
+unsigned short parse_SHR(){
+    unsigned short instruction = 0x8006;
+    char *arg;
+
+    arg = strtok(linebuffer, " ,");
+    arg = strtok(NULL, " ,");
+
+    if(arg[0] != 'V'){
+        //TODO: Report error
+        return 0xFFFF;
+    }
+    instruction |= (char2byte(arg[1]) & 0x0F) << 8;
+    arg = strtok(NULL, " ,");
+    arg = strtok(NULL, " ,");
+    if(arg[0] != 'V'){
+        //TODO: Report error
+        return 0xFFFF;
+    }
+    instruction |= (char2byte(arg[1]) & 0x0F) << 4;
+     
+    return instruction;
+}
 unsigned short parse_SUBN(){
     unsigned short instruction = 0x8007;
     char *arg;
@@ -479,7 +500,29 @@ unsigned short parse_SUBN(){
     return instruction; 
 
 }
-unsigned short parse_SHL();
+unsigned short parse_SHL(){
+    unsigned short instruction = 0x800E;
+    char *arg;
+
+    arg = strtok(linebuffer, " ,");
+    arg = strtok(NULL, " ,");
+
+    if(arg[0] != 'V'){
+        //TODO: Report error
+        return 0xFFFF;
+    }
+    instruction |= (char2byte(arg[1]) & 0x0F) << 8;
+    arg = strtok(NULL, " ,");
+    arg = strtok(NULL, " ,");
+    if(arg[0] != 'V'){
+        //TODO: Report error
+        return 0xFFFF;
+    }
+    instruction |= (char2byte(arg[1]) & 0x0F) << 4;
+     
+    return instruction;
+
+}
 unsigned short parse_RND(){
     unsigned short instruction = 0xC000;
     char *arg;
@@ -498,7 +541,35 @@ unsigned short parse_RND(){
 
     return instruction;
 }   
-unsigned short parse_DRW();
+unsigned short parse_DRW(){
+    unsigned short instruction = 0xD000;
+    char *arg;
+
+    arg = strtok(linebuffer, " ,");
+    arg = strtok(NULL, " ,");
+
+    if(arg[0] != 'V'){
+        //TODO: Report error
+        return 0xFFFF;
+    }
+    instruction |= (char2byte(arg[1]) & 0x0F) << 8;
+
+    arg = strtok(NULL, " ,");
+
+    if(arg[0] != 'V'){
+        //TODO: Report error
+        return 0xFFFF;
+    }
+    instruction |= (char2byte(arg[1]) & 0x0F) << 4;
+
+    if(arg[0] != 'V'){
+        //TODO: Report error
+        return 0xFFFF;
+    }
+    instruction |= (char2byte(arg[0]) & 0x0F) << 0;
+
+    return instruction;
+}
 unsigned short parse_SKP(){
     unsigned short instruction = 0xE09E;
     char *arg;
