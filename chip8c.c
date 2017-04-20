@@ -274,7 +274,74 @@ unsigned short parse_SNE(){
     }
     return instruction;
 }
-unsigned short parse_LD();
+unsigned short parse_LD(){
+    unsigned short instruction = 0x0000;
+    char *arg;
+
+    arg = strtok(linebuffer, " ,");
+    arg = strtok(NULL, " ,");
+    switch(arg[0]){
+        case 'V':
+            instruction |= (char2byte(arg[1]) & 0x0F) << 8;
+            arg = strtok(NULL, " ,");
+            switch(arg[0]){
+                case 'V':
+                    instruction |=  0x8000;
+                    instruction |= (char2byte(arg[1]) & 0x0F) <<4
+                    break;
+                case 'D':
+                    instruction |= 0xF007;
+                    break;
+                case 'K':
+                    instruction |= 0xF00A;
+                    break;
+                case '[':
+                    instruction |= 0xF065;
+                    break;
+                default:
+                    //TODO: Report error
+                    return 0xFFFF;
+            }
+            break;
+        case 'I':
+            instruction = 0xA000;
+            arg = strtok(NULL, " ,");
+            instruction |= (char2byte(arg[0]) << 8;
+            instruction |= (char2byte(arg[1]) << 4;
+            instruction |= (char2byte(arg[2]) << 0;
+            break;
+        case 'D':
+            instruction |= 0xF015;
+            arg = strtok(NULL, " ,");
+            instruction |= (char2byte(arg[1]) & 0x0F) << 8;
+            break;
+        case 'S'
+            instruction |= 0xF018;
+            arg = strtok(NULL, " ,");
+            instruction |= (char2byte(arg[1]) & 0x0F) << 8;
+            break;
+        case 'F':
+            instruction |= 0xF029;
+            arg = strtok(NULL, " ,");
+            instruction |= (char2byte(arg[1]) & 0x0F) << 8;
+            break;
+        case 'B':
+            instruction |= 0xF033;
+            arg = strtok(NULL, " ,");
+            instruction |= (char2byte(arg[1]) & 0x0F) << 8;
+            break;
+        case '[':
+            instruction |= 0xF065;
+            arg = strtok(NULL, " ,");
+            instruction |= (char2byte(arg[1]) & 0x0F) << 8;
+            break;
+        default:
+            //TODO: Report error
+            return 0xFFFF;
+    }
+
+    return instruction;
+}
 unsigned short parse_ADD(){
     unsigned short instruction = 0x0000;
     char *arg;
@@ -296,7 +363,7 @@ unsigned short parse_ADD(){
             instruction |= 0x8004;
             instruction |= (char2byte(arg[1]) & 0x0F) << 4;
         }else{
-            instruction |= 0xA000;
+            instruction |= 0x7000;
             instruction |= (char2byte(arg[0]) & 0x0F) << 4;
             instruction |= (char2byte(arg[1]) & 0x0F) << 0;
         }
