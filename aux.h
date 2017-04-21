@@ -3,7 +3,6 @@
 
 #include <stdio.h>
 
-extern int line;
 unsigned char char2byte(char input);
 
 #endif
