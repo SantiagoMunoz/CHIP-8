@@ -33,3 +33,10 @@ LD F, V5
 LD B, V5
 LD [I], V5
 LD V5, [I]
+
+!DATA 248
+AABB
+CCDD
+
+!DATA 254
+EEFF

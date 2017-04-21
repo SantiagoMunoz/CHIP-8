@@ -10,39 +10,44 @@
 #include <stdio.h>
 #include "aux.h"
 
-    unsigned short parse_instruction();
+unsigned short parse_instruction();
 
-    unsigned short parse_CLS();
-    unsigned short parse_RET();
-    unsigned short parse_SYS();
-    unsigned short parse_JP();
-    unsigned short parse_CALL();
-    unsigned short parse_SE();
-    unsigned short parse_SNE();
-    unsigned short parse_LD();
-    unsigned short parse_ADD();
-    unsigned short parse_OR();
-    unsigned short parse_AND();
-    unsigned short parse_XOR();
-    unsigned short parse_SUB();
-    unsigned short parse_SHR();
-    unsigned short parse_SUBN();
-    unsigned short parse_SHL();
-    unsigned short parse_RND();
-    unsigned short parse_DRW();
-    unsigned short parse_SKP();
-    unsigned short parse_SKNP();
+unsigned short parse_CLS();
+unsigned short parse_RET();
+unsigned short parse_SYS();
+unsigned short parse_JP();
+unsigned short parse_CALL();
+unsigned short parse_SE();
+unsigned short parse_SNE();
+unsigned short parse_LD();
+unsigned short parse_ADD();
+unsigned short parse_OR();
+unsigned short parse_AND();
+unsigned short parse_XOR();
+unsigned short parse_SUB();
+unsigned short parse_SHR();
+unsigned short parse_SUBN();
+unsigned short parse_SHL();
+unsigned short parse_RND();
+unsigned short parse_DRW();
+unsigned short parse_SKP();
+unsigned short parse_SKNP();
+unsigned short enter_DATA();
 
-    int line;
-    char *linebuffer;
+int line;
+char *linebuffer;
+char data_mode;
+int current_position, skip;
 
-    int main(int argc, char **argv){
+FILE *out;
+
+int main(int argc, char **argv){
 
     char *word;
     size_t size = 256;
     unsigned short instruction;
-    FILE *out;
-
+    data_mode = 0;
+    skip = 0;
         if(argc < 2){
             printf("Usage: chip8c <input file> <output file>\n");
             return 1;
@@ -72,13 +77,20 @@
         line += 1;
         printf("Processing line %d :", line);
         printf(linebuffer);
+        if(0==strcmp(linebuffer,"\n")){
+            line--;
+            continue;
+        }
         instruction = parse_instruction();
         if(instruction != 0xFFFF){
-        word =(char*) &instruction;
-        fwrite(&word[1], 1, 1, out);// memory position of instructiom, 2 bytes long, 1 element and into output file
-        fwrite(&word[0], 1, 1, out);// memory position of instructiom, 2 bytes long, 1 element and into output file
-
+            word =(char*) &instruction;
+            fwrite(&word[1], 1, 1, out);// memory position of instructiom, 2 bytes long, 1 element and into output file
+            fwrite(&word[0], 1, 1, out);// memory position of instructiom, 2 bytes long, 1 element and into output file
         }else{
+            if(skip == 1){
+                skip = 0;
+                continue;
+            }
             printf("Encountered irrecoverable error, aborting compilation...\n");
             fclose(in);
             fclose(out);
@@ -138,8 +150,19 @@ unsigned short parse_instruction(){
         return parse_SKP();
     }else if(0==strcmp(buffer, "SKNP")){
         return parse_SKNP();
+    }else if(0==strcmp(buffer, "!DATA")){
+        return enter_DATA();
     }else{
+        if(data_mode){
+            current_position += 2;
+            return ((char2byte(buffer[0]) & 0x0F) << 12 ) +
+                ((char2byte(buffer[1]) & 0x0F) << 8 ) +
+                ((char2byte(buffer[2]) & 0x0F) << 4 ) +
+                ((char2byte(buffer[3]) & 0x0F) << 0 );
+        }else{
+            //TODO: Report error
         return 0xFFFF;
+        }
     }
 }
 
@@ -192,7 +215,6 @@ unsigned short parse_CALL(){
     
     return instruction;
 }
-
 unsigned short parse_SE(){
     unsigned short instruction = 0x0000;
     char *arg;
@@ -550,3 +572,27 @@ unsigned short parse_SKNP(){
 
 }
 
+unsigned short enter_DATA(){
+    int target_position; 
+    char *arg;
+    int i;
+    char zero = 0;
+    if(!data_mode){
+        current_position = (line -1)*2 + 0x200;
+    }
+    data_mode = 1;
+    arg = strtok(NULL, " ,");
+    target_position = (char2byte(arg[0]) << 8) +
+                        (char2byte(arg[1]) << 4) +
+                        (char2byte(arg[2]) << 0);
+    if( ((target_position % 2) !=0) | (target_position <= current_position)){
+        printf("Illegal data segment location!");
+        skip = 0;
+        return 0xFFFF;
+    }
+    for(i = current_position; i < target_position; i++){
+        fwrite(&zero, 1, 1, out);
+    }
+    skip = 1;
+    return 0xFFFF;
+}
