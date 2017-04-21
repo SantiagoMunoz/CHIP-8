@@ -36,7 +36,7 @@ unsigned char char2byte(char input){
         case 'F':
             return 15;
         default:
-            printf("Warning! Processing illegal hexadecimal digit.");
+            printf("Warning! Processing illegal hexadecimal digit.\n");
     }
     return 0;
 }

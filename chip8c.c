@@ -1,55 +1,55 @@
-/**
- *  Chip8 Compiler
- *  --------------
- *  Because writing your programs directly in binary is a bit inconvenient
- *  As always, use this as you wish.
- **/
+    /**
+     *  Chip8 Compiler
+     *  --------------
+     *  Because writing your programs directly in binary is a bit inconvenient
+     *  As always, use this as you wish.
+     **/
 
 #include <stdlib.h>
 #include <string.h>
 #include <stdio.h>
 #include "aux.h"
 
-unsigned short parse_instruction();
+    unsigned short parse_instruction();
 
-unsigned short parse_CLS();
-unsigned short parse_RET();
-unsigned short parse_SYS();
-unsigned short parse_JP();
-unsigned short parse_CALL();
-unsigned short parse_SE();
-unsigned short parse_SNE();
-unsigned short parse_LD();
-unsigned short parse_ADD();
-unsigned short parse_OR();
-unsigned short parse_AND();
-unsigned short parse_XOR();
-unsigned short parse_SUB();
-unsigned short parse_SHR();
-unsigned short parse_SUBN();
-unsigned short parse_SHL();
-unsigned short parse_RND();
-unsigned short parse_DRW();
-unsigned short parse_SKP();
-unsigned short parse_SKPN();
+    unsigned short parse_CLS();
+    unsigned short parse_RET();
+    unsigned short parse_SYS();
+    unsigned short parse_JP();
+    unsigned short parse_CALL();
+    unsigned short parse_SE();
+    unsigned short parse_SNE();
+    unsigned short parse_LD();
+    unsigned short parse_ADD();
+    unsigned short parse_OR();
+    unsigned short parse_AND();
+    unsigned short parse_XOR();
+    unsigned short parse_SUB();
+    unsigned short parse_SHR();
+    unsigned short parse_SUBN();
+    unsigned short parse_SHL();
+    unsigned short parse_RND();
+    unsigned short parse_DRW();
+    unsigned short parse_SKP();
+    unsigned short parse_SKNP();
 
-int line;
-char *linebuffer;
+    int line;
+    char *linebuffer;
 
-int main(int argc, char **argv){
+    int main(int argc, char **argv){
 
-char *word;
-size_t size = 256;
-unsigned short instruction;
-FILE *out;
+    char *word;
+    size_t size = 256;
+    unsigned short instruction;
+    FILE *out;
 
-    if(argc < 2){
-        printf("Usage: chip8c <input file> <output file>\n");
-        return 1;
-    }
-    FILE *in = fopen(argv[1], "r");
-    if(in == NULL){
-        printf("File not found!\n");
+        if(argc < 2){
+            printf("Usage: chip8c <input file> <output file>\n");
+            return 1;
+        }
+        FILE *in = fopen(argv[1], "r");
+        if(in == NULL){
+            printf("File not found!\n");
         return 1;
     }
     printf("Compiling file ");
@@ -72,7 +72,6 @@ FILE *out;
         line += 1;
         printf("Processing line %d :", line);
         printf(linebuffer);
-        printf("\n");
         instruction = parse_instruction();
         if(instruction != 0xFFFF){
         word =(char*) &instruction;
@@ -87,7 +86,8 @@ FILE *out;
             return 1;
         }
     }
-    
+
+    printf("Compilation successful!\n");    
     free(linebuffer);
     fclose(in);
     fclose(out);
@@ -96,9 +96,9 @@ FILE *out;
 }
 
 unsigned short parse_instruction(){
-    char *buffer = strtok(linebuffer," ,"); //Only the first tokenize needs this. From now on strtok(NULL, " ,");
+    char *buffer = strtok(linebuffer," ,\n"); //Only the first tokenize needs this. From now on strtok(NULL, " ,");
     
-    if(0==strcmp(buffer, "CLK")){
+    if(0==strcmp(buffer, "CLS")){
         return parse_CLS();
     }else if(0==strcmp(buffer, "RET")){
         return parse_RET();
@@ -136,8 +136,8 @@ unsigned short parse_instruction(){
         return parse_DRW();
     }else if(0==strcmp(buffer, "SKP")){
         return parse_SKP();
-    }else if(0==strcmp(buffer, "SKPN")){
-        return parse_SKPN();
+    }else if(0==strcmp(buffer, "SKNP")){
+        return parse_SKNP();
     }else{
         return 0xFFFF;
     }
@@ -219,12 +219,12 @@ unsigned short parse_SNE(){
     unsigned short instruction = 0x0000;
     char *arg;
 
-    arg = strtok(NULL, " .");
+    arg = strtok(NULL, " ,");
     if(arg[0] != 'V'){
         //TODO: Return error
         return 0xFFFF;
     }
-    instruction |= (char2byte(arg[1] & 0x0F)) << 8;
+    instruction |= (char2byte(arg[1]) & 0x0F) << 8;
     arg = strtok(NULL, " ,");
     if(arg[0] == 'V'){
         instruction |= 0x9000;
@@ -514,10 +514,8 @@ unsigned short parse_DRW(){
     }
     instruction |= (char2byte(arg[1]) & 0x0F) << 4;
 
-    if(arg[0] != 'V'){
-        //TODO: Report error
-        return 0xFFFF;
-    }
+    arg = strtok(NULL, " ,");
+
     instruction |= (char2byte(arg[0]) & 0x0F) << 0;
 
     return instruction;
@@ -536,7 +534,7 @@ unsigned short parse_SKP(){
 
     return instruction;
 }
-unsigned short parse_SKPN(){
+unsigned short parse_SKNP(){
     unsigned short instruction = 0xE0A1;
     char *arg;
 
