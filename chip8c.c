@@ -40,7 +40,7 @@ char *linebuffer;
 int main(int argc, char **argv){
 
 char *word;
-char *word2;
+size_t size = 256;
 unsigned short instruction;
 FILE *out;
 
@@ -71,9 +71,15 @@ FILE *out;
 
     while(fgets(linebuffer, 256,in) !=NULL){
         line += 1;
-        instruction = parse_instruction(linebuffer);
+        printf("Processing line %d :", line);
+        printf(linebuffer);
+        printf("\n");
+        instruction = parse_instruction();
         if(instruction != 0xFFFF){
-        fwrite(&instruction, 2, 1, out);// memory position of instructiom, 2 bytes long, 1 element and into output file
+        word =(char*) &instruction;
+        fwrite(&word[1], 1, 1, out);// memory position of instructiom, 2 bytes long, 1 element and into output file
+        fwrite(&word[0], 1, 1, out);// memory position of instructiom, 2 bytes long, 1 element and into output file
+
         }else{
             printf("Encountered irrecoverable error, aborting compilation...\n");
             fclose(in);
@@ -129,48 +135,48 @@ unsigned char char2byte(char input){
     return 0;
 }
 
-unsigned short parse_instruction(char *linebuffer){
+unsigned short parse_instruction(){
     char *buffer = strtok(linebuffer," ,"); //Only the first tokenize needs this. From now on strtok(NULL, " ,");
     
-    if(strcmp(buffer, "CLK")){
+    if(0==strcmp(buffer, "CLK")){
         return parse_CLS();
-    }else if(strcmp(buffer, "RET")){
+    }else if(0==strcmp(buffer, "RET")){
         return parse_RET();
-    }else if(strcmp(buffer, "SYS")){
+    }else if(0==strcmp(buffer, "SYS")){
         return parse_SYS();
-    }else if(strcmp(buffer, "JP")){
+    }else if(0==strcmp(buffer, "JP")){
         return parse_JP();
-    }else if(strcmp(buffer, "CALL")){
+    }else if(0==strcmp(buffer, "CALL")){
         return parse_CALL();
-    }else if(strcmp(buffer, "SE")){
+    }else if(0==strcmp(buffer, "SE")){
         return parse_SE();
-    }else if(strcmp(buffer, "SNE")){
+    }else if(0==strcmp(buffer, "SNE")){
         return parse_SNE();
-    }else if(strcmp(buffer, "LD")){
+    }else if(0==strcmp(buffer, "LD")){
         return parse_LD();
-    }else if(strcmp(buffer, "ADD")){
+    }else if(0==strcmp(buffer, "ADD")){
         return parse_ADD();
-    }else if(strcmp(buffer, "OR")){
+    }else if(0==strcmp(buffer, "OR")){
         return parse_OR();
-    }else if(strcmp(buffer, "AND")){
+    }else if(0==strcmp(buffer, "AND")){
         return parse_AND();
-    }else if(strcmp(buffer, "XOR")){
+    }else if(0==strcmp(buffer, "XOR")){
         return parse_XOR();
-    }else if(strcmp(buffer, "SUB")){
+    }else if(0==strcmp(buffer, "SUB")){
         return parse_SUB();
-    }else if(strcmp(buffer, "SHR")){
+    }else if(0==strcmp(buffer, "SHR")){
         return parse_SHR();
-    }else if(strcmp(buffer, "SUBN")){
+    }else if(0==strcmp(buffer, "SUBN")){
         return parse_SUBN();
-    }else if(strcmp(buffer, "SHL")){
+    }else if(0==strcmp(buffer, "SHL")){
         return parse_SHL();
-    }else if(strcmp(buffer, "RND")){
+    }else if(0==strcmp(buffer, "RND")){
         return parse_RND();
-    }else if(strcmp(buffer, "DRW")){
+    }else if(0==strcmp(buffer, "DRW")){
         return parse_DRW();
-    }else if(strcmp(buffer, "SKP")){
+    }else if(0==strcmp(buffer, "SKP")){
         return parse_SKP();
-    }else if(strcmp(buffer, "SKPN")){
+    }else if(0==strcmp(buffer, "SKPN")){
         return parse_SKPN();
     }else{
         return 0xFFFF;
@@ -187,7 +193,6 @@ unsigned short parse_SYS(){
     unsigned short instruction = 0x0000;
     char *addr;
 
-    addr = strtok(linebuffer, " ,");
     addr = strtok(NULL, " ,");
     instruction |= (char2byte(addr[0]) & 0x0F) << 8;
     instruction |= (char2byte(addr[1]) & 0x0F) << 4;
@@ -199,10 +204,9 @@ unsigned short parse_JP(){
     unsigned short instruction;
     char *arg;
 
-    arg = strtok(linebuffer, " ,");
     arg = strtok(NULL, " ,");
 
-    if(arg[0] = 'V'){
+    if(arg[0] == 'V'){
         instruction = 0xB000;
         arg = strtok(NULL, " ,");
         instruction |= (char2byte(arg[0]) & 0x0F) << 8;
@@ -221,7 +225,6 @@ unsigned short parse_CALL(){
     unsigned short instruction = 0x2000;
     char *addr;
 
-    addr = strtok(linebuffer, " ,");
     addr = strtok(NULL, " ,");
     instruction |= (char2byte(addr[0]) & 0x0F) << 8;
     instruction |= (char2byte(addr[1]) & 0x0F) << 4;
@@ -234,7 +237,6 @@ unsigned short parse_SE(){
     unsigned short instruction = 0x0000;
     char *arg;
 
-    arg = strtok(linebuffer, " ,");
     arg = strtok(NULL, " ,");
     if(arg[0] != 'V'){
         //TODO: Return error
@@ -243,9 +245,10 @@ unsigned short parse_SE(){
     instruction |= (char2byte(arg[1]) & 0x0F) << 8;
     arg = strtok(NULL, " ,");
     if(arg[0] == 'V'){
-        instruction |= 0x50000;
+        instruction |= 0x5000;
         instruction |= (char2byte(arg[1]) & 0x0F) << 4;
     }else{
+        instruction |= 0x3000;
         instruction |= (char2byte(arg[0]) & 0x0F) << 4;
         instruction |= (char2byte(arg[1]) & 0x0F) << 0;
     }
@@ -256,7 +259,6 @@ unsigned short parse_SNE(){
     unsigned short instruction = 0x0000;
     char *arg;
 
-    arg = strtok(linebuffer, " ,");
     arg = strtok(NULL, " .");
     if(arg[0] != 'V'){
         //TODO: Return error
@@ -278,7 +280,6 @@ unsigned short parse_LD(){
     unsigned short instruction = 0x0000;
     char *arg;
 
-    arg = strtok(linebuffer, " ,");
     arg = strtok(NULL, " ,");
     switch(arg[0]){
         case 'V':
@@ -299,8 +300,9 @@ unsigned short parse_LD(){
                     instruction |= 0xF065;
                     break;
                 default:
-                    //TODO: Report error
-                    return 0xFFFF;
+                    instruction |= 0x6000;
+                    instruction |= (char2byte(arg[0]) & 0x0F) << 4;
+                    instruction |= (char2byte(arg[1]) & 0x0F) << 0;
             }
             break;
         case 'I':
@@ -346,7 +348,6 @@ unsigned short parse_ADD(){
     unsigned short instruction = 0x0000;
     char *arg;
 
-    arg = strtok(linebuffer, " ,");
     arg = strtok(NULL, " ,");
     if(arg[0] == 'I'){
         instruction = 0xF01E;
@@ -375,7 +376,6 @@ unsigned short parse_OR(){
     unsigned short instruction = 0x8001;
     char *arg;
 
-    arg = strtok(linebuffer, " ,");
     arg = strtok(NULL, " ,");
     
     if(arg[0] != 'V'){
@@ -396,7 +396,6 @@ unsigned short parse_AND(){
     unsigned short instruction = 0x8002;
     char *arg;
 
-    arg = strtok(linebuffer, " ,");
     arg = strtok(NULL, " ,");
     
     if(arg[0] != 'V'){
@@ -417,7 +416,6 @@ unsigned short parse_XOR(){
     unsigned short instruction = 0x8003;
     char *arg;
 
-    arg = strtok(linebuffer, " ,");
     arg = strtok(NULL, " ,");
     
     if(arg[0] != 'V'){
@@ -439,7 +437,6 @@ unsigned short parse_SUB(){
     unsigned short instruction = 0x8005;
     char *arg;
 
-    arg = strtok(linebuffer, " ,");
     arg = strtok(NULL, " ,");
     
     if(arg[0] != 'V'){
@@ -460,7 +457,6 @@ unsigned short parse_SHR(){
     unsigned short instruction = 0x8006;
     char *arg;
 
-    arg = strtok(linebuffer, " ,");
     arg = strtok(NULL, " ,");
 
     if(arg[0] != 'V'){
@@ -482,7 +478,6 @@ unsigned short parse_SUBN(){
     unsigned short instruction = 0x8007;
     char *arg;
 
-    arg = strtok(linebuffer, " ,");
     arg = strtok(NULL, " ,");
     
     if(arg[0] != 'V'){
@@ -504,7 +499,6 @@ unsigned short parse_SHL(){
     unsigned short instruction = 0x800E;
     char *arg;
 
-    arg = strtok(linebuffer, " ,");
     arg = strtok(NULL, " ,");
 
     if(arg[0] != 'V'){
@@ -527,7 +521,6 @@ unsigned short parse_RND(){
     unsigned short instruction = 0xC000;
     char *arg;
 
-    arg = strtok(linebuffer, " ,");
     arg = strtok(NULL, " ,");
     if(arg[0] != 'V'){
         //TODO: report error
@@ -545,7 +538,6 @@ unsigned short parse_DRW(){
     unsigned short instruction = 0xD000;
     char *arg;
 
-    arg = strtok(linebuffer, " ,");
     arg = strtok(NULL, " ,");
 
     if(arg[0] != 'V'){
@@ -574,7 +566,6 @@ unsigned short parse_SKP(){
     unsigned short instruction = 0xE09E;
     char *arg;
 
-    arg = strtok(linebuffer, " ,");
     arg = strtok(NULL, " ,");
     
     if(arg[0] != 'V'){
@@ -589,7 +580,6 @@ unsigned short parse_SKPN(){
     unsigned short instruction = 0xE0A1;
     char *arg;
 
-    arg = strtok(linebuffer, " ,");
     arg = strtok(NULL, " ,");
     
     if(arg[0] != 'V'){
