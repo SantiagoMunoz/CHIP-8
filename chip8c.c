@@ -293,7 +293,7 @@ unsigned short parse_LD(){
             instruction |= (char2byte(arg[1]) & 0x0F) << 8;
             break;
         case '[':
-            instruction |= 0xF065;
+            instruction |= 0xF055;
             arg = strtok(NULL, " ,");
             instruction |= (char2byte(arg[1]) & 0x0F) << 8;
             break;
