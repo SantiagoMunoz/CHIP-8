@@ -86,6 +86,9 @@ int main(int argc, char **argv){
             word =(char*) &instruction;
             fwrite(&word[1], 1, 1, out);// memory position of instructiom, 2 bytes long, 1 element and into output file
             fwrite(&word[0], 1, 1, out);// memory position of instructiom, 2 bytes long, 1 element and into output file
+            if(data_mode){
+                current_position += 2;
+            }
         }else{
             if(skip == 1){
                 skip = 0;
@@ -590,9 +593,10 @@ unsigned short enter_DATA(){
         skip = 0;
         return 0xFFFF;
     }
-    for(i = current_position; i < target_position; i++){
+    for(i = current_position; i < (target_position -2); i++){
         fwrite(&zero, 1, 1, out);
     }
     skip = 1;
+    current_position = target_position;
     return 0xFFFF;
 }
