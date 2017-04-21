@@ -3,11 +3,11 @@
  SYS ABC
  JP ABC
  CALL ABC
- SE V5, byte
- SNE V5, byte
+ SE V5, 3D
+ SNE V5, 3D
  SE V5, V7
- LD V5, byte
- ADD V5, byte
+ LD V5, 3D
+ ADD V5, 3D
  LD V5, V7
  OR V5, V7
  AND V5, V7
@@ -20,7 +20,7 @@
  SNE V5, V7
  LD I, ABC
  JP V0, ABC
- RND V5, byte
+ RND V5, 3D
  DRW V5, V7, A 
  SKP V5
  SKNP V5
