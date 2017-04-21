@@ -131,6 +131,8 @@ unsigned char char2byte(char input){
             return 14;
         case 'F':
             return 15;
+        default:
+            printf("Warning! Processing illegal hexadecimal digit at line %d.\n", line);
     }
     return 0;
 }
