@@ -7,6 +7,7 @@
 #include <string.h>
 #include <stdio.h>
 #include <stdlib.h>
+#include <stdint.h>
 #include <time.h>
 #include <SDL2/SDL.h>
 
@@ -46,8 +47,7 @@ unsigned char running;
 
 int main(int argc, char **argv){
 
-clock_t local_time;
-
+uint32_t local_time;
     //Setup
     running = 1;
 
@@ -60,10 +60,12 @@ clock_t local_time;
     }
 
     init();
+    memset(screen, 64*32, 0x00);
+    update_screen();
     
 
     while(running == 1){
-        local_time = clock(); 
+        local_time = SDL_GetTicks(); 
     
         cycle();
         if(draw){
@@ -72,7 +74,7 @@ clock_t local_time;
         }
         
         input();
-        while( clock() < (local_time + CLOCKS_PER_SEC/30)){
+        while( clock() < (local_time + 500)){
         
         }
     }
@@ -81,16 +83,21 @@ clock_t local_time;
 }
 
 void init(){        
+    int i;
     /* Init interpreter */
     //Init SDL
+    
     if(SDL_Init(SDL_INIT_VIDEO) != 0)
         printf("SDL Init error!\n");
     window = SDL_CreateWindow("Chip-8",100, 100, 256, 128, SDL_WINDOW_SHOWN); //Each screen pixel is 4 pixel wide
-    ren = SDL_CreateRenderer(window, -1, 0);
+    ren = SDL_CreateRenderer(window, 1, SDL_RENDERER_ACCELERATED | SDL_RENDERER_PRESENTVSYNC);
     tex = SDL_CreateTexture(ren, SDL_PIXELFORMAT_ARGB8888, SDL_TEXTUREACCESS_STATIC, 256, 128);
     //Init memory and registers
     memset(memory, 4096, 0x00);
     memset(V, 16, 0x00);
+    for(i=0;i<32*64;i++){
+        screen[i] = 0;
+    }
     //Load interpreter data (fontset)    
     //0
     memory[0x000] = 0xF0;
@@ -216,6 +223,7 @@ void cycle(){
     unsigned char Vtemp = 0x00;
     unsigned char i = 0, j =0;
     unsigned short posx = 0, posy = 0;
+    unsigned short posx_orig = 0, posy_orig = 0;
     /* Process one cpu cycle */
 
     //Fetch instruction
@@ -226,7 +234,7 @@ void cycle(){
             //Either 0nnn, 00E0 or 00EE
             if(opcode == 0x00E0){
                 //00E0 - Clear the display
-                memset(screen, 64*32, 0x00);                
+                memset(screen, 64*32, 0x00);
                 draw = 1;
                 pc += 2;
             }else if(opcode == 0x00EE){
@@ -358,14 +366,25 @@ void cycle(){
         case 0xD:
             //Dxyn - Display n bit sprite starting at memory position given by I, coordinates (Vx,Vy) and then set VF to collision in case a pixel gets deleted.
             V[16] = 0; //Preemptive flag reset
+            posy_orig = V[(opcode & 0x00F0)>>4];
+            posx_orig = V[(opcode & 0x0F00)>>8];
             for(i=0; i < (opcode & 0x000F); i++){ // i - stride y
-                posy =( ((opcode & 0x00F0)>>8) + j ) > 32? ((opcode & 0x00F0)>>8) + j - 32 : ((opcode & 0x00F0)>>8) + j;
+                posy = posy_orig + i; 
+                if (posy > 31)  posy -= 32;
                 for(j=0;j < 8; j++){ // j - stride x
                     //If something goes off the screen, draw it coming from the other side
-                    posx = ( ((opcode & 0x0F00)>>8) + j ) > 63 ? ((opcode & 0x0F00)>>8) + j - 64 : ((opcode & 0x0F00)>>8) + j;
-                    Vtemp = screen[posx+posy*64];   //Load contents of current pixel-> (Vx +j, Vy + i) to then calculate the override
-                    screen[posx+posy*64] ^= ( (memory[I+j] & (0x80>>i)) != 0 ); // 0b10000000 LSR for the individual bit inside the row
-                    if(screen[posx+posy*64] < Vtemp) V[16] = 1; // If current pixel is zero and it was preciously 1 -> Set Vf to override
+                    posx = posx_orig + j;
+                    if(posx > 63)   posx -= 63;
+                    Vtemp = screen[posx+(posy*64)];   //Load contents of current pixel-> (Vx +j, Vy + i) to then calculate the override
+                    //Previously ^=
+                    if( (memory[I+i] & (0x80>>j)) != 0){
+                        if(Vtemp = 1){
+                            screen[posx+(64*posy)] = 0;
+                            V[16] = 1;
+                        }else{
+                            screen[posx+(64*posy)] = 1;
+                        }
+                    }
                 }
             }
             draw = 1;
@@ -469,14 +488,14 @@ for(j=0;j<32;j++){
                 target_color = SDL_WHITE;
             else
                 target_color = SDL_BLACK;
-            for(jj=j;jj<j+4;jj++){
-                for(ii=i;ii<i+4;ii++){
-                    pixels[jj*256+ii] = target_color;
+            for(jj=0;jj<4;jj++){
+                for(ii=0;ii<4;ii++){
+                    pixels[(j*4 +jj)*256+(i*4+ii)] = target_color;
                 }
             }
         }
     }
-    SDL_UpdateTexture(tex, NULL, pixels, 256 * sizeof(uint32_t));
+    SDL_UpdateTexture(tex, NULL, pixels, 256*sizeof(uint32_t));
     SDL_RenderClear(ren);
     SDL_RenderCopy(ren, tex, NULL, NULL);
     SDL_RenderPresent(ren);
