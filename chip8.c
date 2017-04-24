@@ -36,11 +36,11 @@ unsigned short stack[16]; //stack
 unsigned char sp; //stack pointer
 
 //Main Functions
-void init();        //Init interpreter
-void load_file();   //Load the program
-void cycle();       //Process one cpu cycle
-void update_screen();        //Update the screen
-void input();       //Update keyboard status
+void init();                        // Init interpreter
+int load_file(char *filename);      // Load the program
+void cycle();                       // Process one cpu cycle
+void update_screen();               // Update the screen
+void input();                       // Update keyboard status
 
 unsigned char running;
 
@@ -51,8 +51,16 @@ clock_t local_time;
     //Setup
     running = 1;
 
+    if(argc < 2){
+        printf("Usage: chip8 <filename>\n");
+        return 1;
+    }
+    if(load_file(argv[1])){
+        return 1;
+    }
+
     init();
-    load_file();
+    
 
     while(running == 1){
         local_time = clock(); 
@@ -188,13 +196,20 @@ void init(){
     sp = 0;
 }
 
-void load_file(){   
+int load_file(char *filename){   
     //Load the program
     FILE *f;
-    f = fopen("programs/BRIX","r");
-    
+    printf("Loading program ");
+    printf(filename);
+    printf("\n");
+    f = fopen(filename,"rb");
+    if (f == NULL){
+        printf("Unable to read program file\n");
+        return 1;
+    } 
     fread(memory + 512, 1, 3583, f); //Read up to 3583 elements of 1 byte and store them from position 512
     fclose(f);
+    return 0;
 }
     
 void cycle(){       
