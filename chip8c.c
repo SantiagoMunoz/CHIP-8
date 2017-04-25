@@ -593,7 +593,7 @@ unsigned short enter_DATA(){
         skip = 0;
         return 0xFFFF;
     }
-    for(i = current_position; i < (target_position -2); i++){
+    for(i = current_position; i < (target_position); i++){
         fwrite(&zero, 1, 1, out);
     }
     skip = 1;

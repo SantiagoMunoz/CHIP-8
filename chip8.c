@@ -371,14 +371,15 @@ void cycle(){
             for(i=0; i < (opcode & 0x000F); i++){ // i - stride y
                 posy = posy_orig + i; 
                 if (posy > 31)  posy -= 32;
-                for(j=0;j < 8; j++){ // j - stride x
+                for(j=0;j < 8; j++){ // j - stride x (Sprites are ALWAYS 8 bit long)
                     //If something goes off the screen, draw it coming from the other side
                     posx = posx_orig + j;
                     if(posx > 63)   posx -= 63;
                     Vtemp = screen[posx+(posy*64)];   //Load contents of current pixel-> (Vx +j, Vy + i) to then calculate the override
-                    //Previously ^=
                     if( (memory[I+i] & (0x80>>j)) != 0){
-                        if(Vtemp = 1){
+                        //Pixel should be set
+                        if(Vtemp == 1){
+                            //Pixel was already set-> Reset to 0 and drive V16 up
                             screen[posx+(64*posy)] = 0;
                             V[16] = 1;
                         }else{
