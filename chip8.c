@@ -63,20 +63,20 @@ uint32_t local_time;
     }
 
     memset(screen, 0x00, 64*32);
-    update_screen();
 
+    draw = 1;
     while(running == 1){
         int i;
+        if(draw){
+            update_screen();
+            draw = 0;
+        }
         for(i=0; i<FRAME_DELAY_MS;i++){
             input();
             SDL_Delay(1);
         }
         cycle();
-        draw = 1;
-        if(draw){
-            update_screen();
-            draw = 0;
-        }
+        
     }
     SDL_Quit();
     return 0;
