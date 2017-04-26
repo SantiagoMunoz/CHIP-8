@@ -14,6 +14,7 @@
 #define SDL_WHITE  0xFFFFFFFF
 #define SDL_BLACK  0x00000000
 
+#define FRAME_DELAY_MS 1000/30
 
 unsigned short opcode; //Keypad
 unsigned char memory[4096]; //Memory (4kb)
@@ -55,50 +56,47 @@ uint32_t local_time;
         printf("Usage: chip8 <filename>\n");
         return 1;
     }
+
+    init();
     if(load_file(argv[1])){
         return 1;
     }
 
-    init();
-    memset(screen, 64*32, 0x00);
+    memset(screen, 0x00, 64*32);
     update_screen();
-    
 
     while(running == 1){
-        local_time = SDL_GetTicks(); 
-    
+        int i;
+        for(i=0; i<FRAME_DELAY_MS;i++){
+            input();
+            SDL_Delay(1);
+        }
         cycle();
+        draw = 1;
         if(draw){
             update_screen();
             draw = 0;
         }
-        
-        input();
-        while( clock() < (local_time + 500)){
-        
-        }
     }
-    
+    SDL_Quit();
     return 0;
 }
 
-void init(){        
+void init(){
     int i;
     /* Init interpreter */
     //Init SDL
-    
+
     if(SDL_Init(SDL_INIT_VIDEO) != 0)
         printf("SDL Init error!\n");
     window = SDL_CreateWindow("Chip-8",100, 100, 256, 128, SDL_WINDOW_SHOWN); //Each screen pixel is 4 pixel wide
-    ren = SDL_CreateRenderer(window, 1, SDL_RENDERER_ACCELERATED | SDL_RENDERER_PRESENTVSYNC);
-    tex = SDL_CreateTexture(ren, SDL_PIXELFORMAT_ARGB8888, SDL_TEXTUREACCESS_STATIC, 256, 128);
+    ren = SDL_CreateRenderer(window, -1, SDL_RENDERER_ACCELERATED);
+    //tex = SDL_CreateTexture(ren, SDL_PIXELFORMAT_ARGB8888, SDL_TEXTUREACCESS_STATIC, 256, 128);
     //Init memory and registers
-    memset(memory, 4096, 0x00);
-    memset(V, 16, 0x00);
-    for(i=0;i<32*64;i++){
-        screen[i] = 0;
-    }
-    //Load interpreter data (fontset)    
+    memset(memory, 0x00, 4096);
+    memset(V, 0x00, 16);
+    memset(screen, 0x00, 64*32);
+    //Load interpreter data (fontset)
     //0
     memory[0x000] = 0xF0;
     memory[0x001] = 0x90;
@@ -197,13 +195,13 @@ void init(){
     memory[0x04F] = 0x80;
 
     //Init Program Counter
-    pc = 512; //Start of Program Memory 
-    
+    pc = 512; //Start of Program Memory
+
     //Init Stack Pointer
     sp = 0;
 }
 
-int load_file(char *filename){   
+int load_file(char *filename){
     //Load the program
     FILE *f;
     printf("Loading program ");
@@ -213,13 +211,14 @@ int load_file(char *filename){
     if (f == NULL){
         printf("Unable to read program file\n");
         return 1;
-    } 
+    }
+
     fread(memory + 512, 1, 3583, f); //Read up to 3583 elements of 1 byte and store them from position 512
     fclose(f);
     return 0;
 }
-    
-void cycle(){       
+
+void cycle(){
     unsigned char Vtemp = 0x00;
     unsigned char i = 0, j =0;
     unsigned short posx = 0, posy = 0;
@@ -227,15 +226,15 @@ void cycle(){
     /* Process one cpu cycle */
 
     //Fetch instruction
-    opcode = memory[pc] << 8 | memory[pc + 1]; 
+    opcode = memory[pc] << 8 | memory[pc + 1];
     //Decode instruction + Execute
     switch( (opcode & 0xF000) >> 12){
         case 0x0:
             //Either 0nnn, 00E0 or 00EE
             if(opcode == 0x00E0){
                 //00E0 - Clear the display
-                memset(screen, 64*32, 0x00);
                 draw = 1;
+                memset(screen, 0x00, 64*32);
                 pc += 2;
             }else if(opcode == 0x00EE){
                 //00EE - Return from a subroutine
@@ -313,28 +312,28 @@ void cycle(){
                     V[(opcode & 0x0F00)>>8] = V[(opcode & 0x0F00)>>8] ^ V[(opcode & 0x00F0)>>4];
                     break;
                 case  0x4:
-                    //8xy4 - Set Vx = Vx + Vy with carry on V16 
+                    //8xy4 - Set Vx = Vx + Vy with carry on V16
                     Vtemp = V[(opcode & 0x0F00)>>8];
                     V[(opcode & 0x0F00)>>8] = V[(opcode & 0x0F00)>>8] + V[(opcode & 0x00F0)>>4];
                     V[16] = (Vtemp > V[(opcode & 0x0F00)>>8]) ? 1 : 0;
                     break;
                 case 0x5:
-                    //8xy5 - Set Vx = Vx - Vy with NOT borrow on V16 
+                    //8xy5 - Set Vx = Vx - Vy with NOT borrow on V16
                     V[16] = V[(opcode & 0x0F00)>>8] > V[(opcode & 0x00F0)>>4] ? 1 : 0;
                     V[(opcode & 0x0F00)>>8] = V[(opcode & 0x0F00)>>8] - V[(opcode & 0x00F0)>>4];
                     break;
                 case  0x6:
-                    //8xy6 - If LSB of Vx is 1, set Vf and LSR Vx 
+                    //8xy6 - If LSB of Vx is 1, set Vf and LSR Vx
                     V[16] = (V[(opcode & 0x0F00)>>8] & 0x0001) > 0 ? 1 : 0;
                     V[(opcode & 0x0F00)>>8] = V[(opcode & 0x0F00)>>8] >> 1; //LSR = Divide by 2
                     break;
                 case 0x7:
-                    //8xy7 - Set Vx = Vy - Vx with NOT borrow on V16 
+                    //8xy7 - Set Vx = Vy - Vx with NOT borrow on V16
                     V[16] = V[(opcode & 0x00F0)>>8] > V[(opcode & 0x0F00)>>4] ? 1 : 0;
                     V[(opcode & 0x0F00)>>8] = V[(opcode & 0x00F0)>>8] - V[(opcode & 0x0F00)>>4];
                     break;
                 case 0xE:
-                    //8xy6 - If MSB of Vx is 1, set Vf and LSR Vx 
+                    //8xy6 - If MSB of Vx is 1, set Vf and LSR Vx
                     V[16] = (V[(opcode & 0x0F00)>>8] & 0x8000) > 0 ? 1 : 0;
                     V[(opcode & 0x0F00)>>8] = V[(opcode & 0x0F00)>>8] << 1; //LSL = Multiply by 2
                     break;
@@ -369,7 +368,7 @@ void cycle(){
             posy_orig = V[(opcode & 0x00F0)>>4];
             posx_orig = V[(opcode & 0x0F00)>>8];
             for(i=0; i < (opcode & 0x000F); i++){ // i - stride y
-                posy = posy_orig + i; 
+                posy = posy_orig + i;
                 if (posy > 31)  posy -= 32;
                 for(j=0;j < 8; j++){ // j - stride x (Sprites are ALWAYS 8 bit long)
                     //If something goes off the screen, draw it coming from the other side
@@ -378,7 +377,7 @@ void cycle(){
                     Vtemp = screen[posx+(posy*64)];   //Load contents of current pixel-> (Vx +j, Vy + i) to then calculate the override
                     if( (memory[I+i] & (0x80>>j)) != 0){
                         //Pixel should be set
-                        if(Vtemp == 1){
+                        if(Vtemp != 0){
                             //Pixel was already set-> Reset to 0 and drive V16 up
                             screen[posx+(64*posy)] = 0;
                             V[16] = 1;
@@ -448,7 +447,7 @@ void cycle(){
                 memory[I+2] = (V[(opcode && 0x0F00) >> 8] & 0x00F );
             }
             if((opcode & 0x00FF) == 0x0055){
-                //Fx55 - Dump registers V0 to Vx in memory starting from memory position given by I 
+                //Fx55 - Dump registers V0 to Vx in memory starting from memory position given by I
                 for(i=0; i< ( (opcode & 0x0F00) >> 8 ); i++)
                     memory[I+i] = V[i];
             }
@@ -464,41 +463,40 @@ void cycle(){
             pc+=2;
             break;
     }
-    
+
     //Update timers
     if(sound_timer > 0){
         --sound_timer;
         if(sound_timer == 0){
             //Play sound
-            printf("\a"); 
+            printf("\a");
         }
     }
 
-    if(delay_timer > 0) --delay_timer; 
+    if(delay_timer > 0) --delay_timer;
     return;
 }
 
 void update_screen(){
     //Update the screen
-    
-unsigned char i, j, ii,jj;
-uint32_t target_color;
-for(j=0;j<32;j++){
+
+    unsigned char i, j, ii,jj;
+    SDL_Rect m_pixel;
+    m_pixel.w = 4;
+    m_pixel.h = 4;
+
+    SDL_SetRenderDrawColor(ren, 0, 0, 0, 0);
+    SDL_RenderClear(ren);
+    SDL_SetRenderDrawColor(ren, 255, 255, 255, 255);
+    for(j=0;j<32;j++){
         for(i=0;i<64;i++){
-            if(screen[j*64+i] == 1)
-                target_color = SDL_WHITE;
-            else
-                target_color = SDL_BLACK;
-            for(jj=0;jj<4;jj++){
-                for(ii=0;ii<4;ii++){
-                    pixels[(j*4 +jj)*256+(i*4+ii)] = target_color;
-                }
+            if(screen[j*64+i] != 0){
+                m_pixel.x = 4*i;
+                m_pixel.y = 4*j;
+                SDL_RenderFillRect(ren, &m_pixel);
             }
         }
     }
-    SDL_UpdateTexture(tex, NULL, pixels, 256*sizeof(uint32_t));
-    SDL_RenderClear(ren);
-    SDL_RenderCopy(ren, tex, NULL, NULL);
     SDL_RenderPresent(ren);
 }
 
