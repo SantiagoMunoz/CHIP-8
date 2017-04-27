@@ -488,15 +488,17 @@ void update_screen(){
     m_pixel.w = 4;
     m_pixel.h = 4;
 
-    SDL_SetRenderDrawColor(ren, 0, 0, 0, 0);
+    SDL_SetRenderDrawColor(ren, 0, 0, 0, 255);
     SDL_RenderClear(ren);
     SDL_SetRenderDrawColor(ren, 255, 255, 255, 255);
     for(j=0;j<32;j++){
         for(i=0;i<64;i++){
+            input();
             if(screen[j*64+i] != 0){
                 m_pixel.x = 4*i;
                 m_pixel.y = 4*j;
                 SDL_RenderFillRect(ren, &m_pixel);
+                input();
             }
         }
     }
