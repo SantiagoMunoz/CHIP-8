@@ -71,12 +71,15 @@ uint32_t local_time;
             update_screen();
             draw = 0;
         }
-        for(i=0; i<FRAME_DELAY_MS;i++){
+        for(i=0; i<FRAME_DELAY_MS/2;i++){
             input();
             SDL_Delay(1);
         }
         cycle();
-        
+        for(i=0; i<FRAME_DELAY_MS/2;i++){
+            input();
+            SDL_Delay(1);
+        }
     }
     SDL_Quit();
     return 0;
