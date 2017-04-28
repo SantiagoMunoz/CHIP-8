@@ -94,8 +94,8 @@ void init(){
     if(SDL_Init(SDL_INIT_VIDEO) != 0)
         printf("SDL Init error!\n");
     SDL_EventState(SDL_MOUSEMOTION, SDL_IGNORE);
-    window = SDL_CreateWindow("Chip-8",100, 100, 256, 128, SDL_WINDOW_SHOWN); //Each screen pixel is 4 pixel wide
-    ren = SDL_CreateRenderer(window, -1, SDL_RENDERER_SOFTWARE);
+    window = SDL_CreateWindow("Chip-8",SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED, 256, 128, SDL_WINDOW_SHOWN); //Each screen pixel is 4 pixel wide
+    ren = SDL_CreateRenderer(window, -1, SDL_RENDERER_SOFTWARE | SDL_RENDERER_PRESENTVSYNC);
     //tex = SDL_CreateTexture(ren, SDL_PIXELFORMAT_ARGB8888, SDL_TEXTUREACCESS_STATIC, 256, 128);
     //Init memory and registers
     memset(memory, 0x00, 4096);
