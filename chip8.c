@@ -43,7 +43,7 @@ int load_file(char *filename);      // Load the program
 void cycle();                       // Process one cpu cycle
 void update_screen();               // Update the screen
 void input();                       // Update keyboard status
-
+int input_filter(void *data, SDL_Event *e);
 unsigned char running;
 
 int main(int argc, char **argv){
@@ -63,6 +63,7 @@ uint32_t local_time;
     }
 
     memset(screen, 0x00, 64*32);
+    //SDL_FilterEvents(input_filter, NULL);
 
     draw = 1;
     while(running == 1){
@@ -94,7 +95,7 @@ void init(){
         printf("SDL Init error!\n");
     SDL_EventState(SDL_MOUSEMOTION, SDL_IGNORE);
     window = SDL_CreateWindow("Chip-8",100, 100, 256, 128, SDL_WINDOW_SHOWN); //Each screen pixel is 4 pixel wide
-    ren = SDL_CreateRenderer(window, -1, SDL_RENDERER_ACCELERATED);
+    ren = SDL_CreateRenderer(window, -1, SDL_RENDERER_SOFTWARE);
     //tex = SDL_CreateTexture(ren, SDL_PIXELFORMAT_ARGB8888, SDL_TEXTUREACCESS_STATIC, 256, 128);
     //Init memory and registers
     memset(memory, 0x00, 4096);
@@ -494,12 +495,10 @@ void update_screen(){
     SDL_SetRenderDrawColor(ren, 255, 255, 255, 255);
     for(j=0;j<32;j++){
         for(i=0;i<64;i++){
-            input();
             if(screen[j*64+i] != 0){
                 m_pixel.x = 4*i;
                 m_pixel.y = 4*j;
                 SDL_RenderFillRect(ren, &m_pixel);
-                input();
             }
         }
     }
@@ -571,4 +570,13 @@ void input(){
                 break;
         } //end switch
     } //end while
+}
+
+int input_filter(void *data, SDL_Event *e){
+    if( (e->type == SDL_KEYDOWN) | (e->type == SDL_KEYUP) | (e->type == SDL_QUIT) )
+        return 1;
+    else
+        return 0;
+
+
 }
