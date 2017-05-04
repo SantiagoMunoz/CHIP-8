@@ -14,23 +14,24 @@
 #define SDL_WHITE  0xFFFFFFFF
 #define SDL_BLACK  0x00000000
 
-#define FRAME_DELAY_MS 1000/30
+#define FRAME_DELAY_MS 200
 
+#define SCREEN_W    64
+#define SCREEN_H    32
+#define ZOOM        4
 unsigned short opcode; //Keypad
 unsigned char memory[4096]; //Memory (4kb)
 unsigned char V[16]; //Registers V0-V15 plus Carry Flag
 unsigned short I; //Index register
 unsigned short pc; //Program counter
 
-unsigned char screen[64*32]; //64x32 display
+unsigned char screen[SCREEN_W*SCREEN_H]; //64x32 display
 unsigned char key[16]; //Keypad
 unsigned char draw;
 
 SDL_Window *window;
 SDL_Renderer *ren;
-SDL_Texture *tex;
 SDL_Event event;
-uint32_t pixels[256*128]; // 64*32 upscaled 4/1 to 265*128
 
 unsigned char delay_timer, sound_timer; // Timer registers
 
@@ -62,13 +63,13 @@ uint32_t local_time;
         return 1;
     }
 
-    memset(screen, 0x00, 64*32);
+    memset(screen, 0x00, SCREEN_W*SCREEN_H);
     //SDL_FilterEvents(input_filter, NULL);
 
     draw = 1;
     while(running == 1){
         int i;
-        if(draw){
+        if(draw == 1){
             update_screen();
             draw = 0;
         }
@@ -93,14 +94,17 @@ void init(){
 
     if(SDL_Init(SDL_INIT_VIDEO) != 0)
         printf("SDL Init error!\n");
+
     SDL_EventState(SDL_MOUSEMOTION, SDL_IGNORE);
-    window = SDL_CreateWindow("Chip-8",SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED, 256, 128, SDL_WINDOW_SHOWN); //Each screen pixel is 4 pixel wide
-    ren = SDL_CreateRenderer(window, -1, SDL_RENDERER_SOFTWARE | SDL_RENDERER_PRESENTVSYNC);
-    //tex = SDL_CreateTexture(ren, SDL_PIXELFORMAT_ARGB8888, SDL_TEXTUREACCESS_STATIC, 256, 128);
+
+    SDL_CreateWindowAndRenderer(SCREEN_W*ZOOM, SCREEN_H*ZOOM, 0, &window, &ren);
+    if(ren == NULL){
+        printf("Unable to create renderer!\n");
+    }
     //Init memory and registers
     memset(memory, 0x00, 4096);
     memset(V, 0x00, 16);
-    memset(screen, 0x00, 64*32);
+    memset(screen, 0x00, SCREEN_W*SCREEN_H);
     //Load interpreter data (fontset)
     //0
     memory[0x000] = 0xF0;
@@ -225,9 +229,9 @@ int load_file(char *filename){
 
 void cycle(){
     unsigned char Vtemp = 0x00;
-    unsigned char i = 0, j =0;
-    unsigned short posx = 0, posy = 0;
-    unsigned short posx_orig = 0, posy_orig = 0;
+    int i = 0, j =0;
+    int posx = 0, posy = 0;
+    int posx_orig = 0, posy_orig = 0;
     /* Process one cpu cycle */
 
     //Fetch instruction
@@ -239,7 +243,7 @@ void cycle(){
             if(opcode == 0x00E0){
                 //00E0 - Clear the display
                 draw = 1;
-                memset(screen, 0x00, 64*32);
+                memset(screen, 0x00, SCREEN_W*SCREEN_H);
                 pc += 2;
             }else if(opcode == 0x00EE){
                 //00EE - Return from a subroutine
@@ -485,24 +489,33 @@ void cycle(){
 void update_screen(){
     //Update the screen
 
-    unsigned char i, j, ii,jj;
-    SDL_Rect m_pixel;
-    m_pixel.w = 4;
-    m_pixel.h = 4;
+    int i, j, ii,jj;
 
-    SDL_SetRenderDrawColor(ren, 0, 0, 0, 255);
-    SDL_RenderClear(ren);
+    SDL_SetRenderDrawColor(ren, 0, 0, 0, 0);
+    if( 0 != SDL_RenderClear(ren)){
+        printf("Error clearing the screen\n");
+    }
     SDL_SetRenderDrawColor(ren, 255, 255, 255, 255);
-    for(j=0;j<32;j++){
-        for(i=0;i<64;i++){
-            if(screen[j*64+i] != 0){
-                m_pixel.x = 4*i;
-                m_pixel.y = 4*j;
-                SDL_RenderFillRect(ren, &m_pixel);
+    printf("SDL error(Clear): %s\n", SDL_GetError());
+
+    for(j=0;j<SCREEN_H;j++){
+        
+        for(i=0;i<SCREEN_W;i++){
+
+            if(screen[j*SCREEN_W+i] != 0){
+                
+                for(jj=0;jj<4;jj++)
+                   for(ii=0;ii<4;ii++){
+                        if(0 != SDL_RenderDrawPoint(ren, i+ii, j+jj)){
+                            printf("Error drawing pixel\n");
+                        }
+                   }
+
             }
         }
     }
     SDL_RenderPresent(ren);
+    SDL_Delay(50);
 }
 
 void input(){

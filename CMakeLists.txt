@@ -7,4 +7,3 @@ add_executable(compiler_test compiler_test.c aux.c)
 add_executable(chip8c chip8c.c aux.c)
 add_executable(chip8 chip8.c)
 target_link_libraries(chip8 SDL2)
-
