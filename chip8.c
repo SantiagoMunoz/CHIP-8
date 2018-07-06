@@ -18,7 +18,8 @@
 
 #define SCREEN_W    64
 #define SCREEN_H    32
-#define ZOOM        4
+#define ZOOM        16
+
 unsigned short opcode; //Keypad
 unsigned char memory[4096]; //Memory (4kb)
 unsigned char V[16]; //Registers V0-V15 plus Carry Flag
@@ -26,11 +27,13 @@ unsigned short I; //Index register
 unsigned short pc; //Program counter
 
 unsigned char screen[SCREEN_W*SCREEN_H]; //64x32 display
+uint32_t pixels[SCREEN_W*ZOOM*SCREEN_H*ZOOM];
 unsigned char key[16]; //Keypad
 unsigned char draw;
 
-SDL_Window *window;
-SDL_Renderer *ren;
+SDL_Window *window = NULL;
+SDL_Renderer *ren = NULL;
+SDL_Texture *text = NULL;
 SDL_Event event;
 
 unsigned char delay_timer, sound_timer; // Timer registers
@@ -39,7 +42,7 @@ unsigned short stack[16]; //stack
 unsigned char sp; //stack pointer
 
 //Main Functions
-void init();                        // Init interpreter
+int init();                        // Init interpreter
 int load_file(char *filename);      // Load the program
 void cycle();                       // Process one cpu cycle
 void update_screen();               // Update the screen
@@ -47,9 +50,9 @@ void input();                       // Update keyboard status
 int input_filter(void *data, SDL_Event *e);
 unsigned char running;
 
-int main(int argc, char **argv){
+int main(int argc, char **argv)
+{
 
-uint32_t local_time;
     //Setup
     running = 1;
 
@@ -58,53 +61,61 @@ uint32_t local_time;
         return 1;
     }
 
-    init();
-    if(load_file(argv[1])){
-        return 1;
-    }
+    if(init())
+        goto cleanup;
 
-    memset(screen, 0x00, SCREEN_W*SCREEN_H);
+    if(load_file(argv[1]))
+        goto cleanup;
+
     //SDL_FilterEvents(input_filter, NULL);
 
     draw = 1;
-    while(running == 1){
-        int i;
+    while(running){
         if(draw == 1){
             update_screen();
             draw = 0;
         }
-        for(i=0; i<FRAME_DELAY_MS/2;i++){
-            input();
-            SDL_Delay(1);
-        }
+        SDL_Delay(FRAME_DELAY_MS);
+        input();
         cycle();
-        for(i=0; i<FRAME_DELAY_MS/2;i++){
-            input();
-            SDL_Delay(1);
-        }
     }
+
+cleanup:
+    if(text)
+        SDL_DestroyTexture(text);
+    if(ren)
+        SDL_DestroyRenderer(ren);
     SDL_Quit();
+    printf("Bye bye\n");
     return 0;
 }
 
-void init(){
-    int i;
-    /* Init interpreter */
-    //Init SDL
+int init()
+{
 
+    //Init SDL
     if(SDL_Init(SDL_INIT_VIDEO) != 0)
         printf("SDL Init error!\n");
 
     SDL_EventState(SDL_MOUSEMOTION, SDL_IGNORE);
 
-    SDL_CreateWindowAndRenderer(SCREEN_W*ZOOM, SCREEN_H*ZOOM, 0, &window, &ren);
-    if(ren == NULL){
-        printf("Unable to create renderer!\n");
-    }
+    window = SDL_CreateWindow("Chip8", SDL_WINDOWPOS_UNDEFINED, SDL_WINDOWPOS_UNDEFINED, SCREEN_W*ZOOM, SCREEN_H*ZOOM, 0);
+    if(!window)
+        return 1;
+    ren = SDL_CreateRenderer(window, -1, 0);
+    if(!ren)
+        return 1;
+    text = SDL_CreateTexture(ren, SDL_PIXELFORMAT_ARGB8888, SDL_TEXTUREACCESS_STATIC, SCREEN_W*ZOOM, SCREEN_H*ZOOM);
+    if(!text)
+        return 1;
+    
+    //Empty screen
+    memset(screen, 0x00, SCREEN_W*SCREEN_H);
+    //Paint pixels white
+    memset(pixels, 255, SCREEN_H*ZOOM*SCREEN_W*ZOOM*sizeof(uint32_t));
     //Init memory and registers
     memset(memory, 0x00, 4096);
     memset(V, 0x00, 16);
-    memset(screen, 0x00, SCREEN_W*SCREEN_H);
     //Load interpreter data (fontset)
     //0
     memory[0x000] = 0xF0;
@@ -208,9 +219,12 @@ void init(){
 
     //Init Stack Pointer
     sp = 0;
+
+    return 0;
 }
 
-int load_file(char *filename){
+int load_file(char *filename)
+{
     //Load the program
     FILE *f;
     printf("Loading program ");
@@ -227,7 +241,8 @@ int load_file(char *filename){
     return 0;
 }
 
-void cycle(){
+void cycle()
+{
     unsigned char Vtemp = 0x00;
     int i = 0, j =0;
     int posx = 0, posy = 0;
@@ -380,9 +395,8 @@ void cycle(){
                 posy = posy_orig + i;
                 if (posy > 31)  posy -= 32;
                 for(j=0;j < 8; j++){ // j - stride x (Sprites are ALWAYS 8 bit long)
-                    //If something goes off the screen, draw it coming from the other side
                     posx = posx_orig + j;
-                    if(posx > 63)   posx -= 63;
+                    if(posx > 63)   posx -= 63; //If something goes off the screen, draw it coming from the other side
                     Vtemp = screen[posx+(posy*64)];   //Load contents of current pixel-> (Vx +j, Vy + i) to then calculate the override
                     if( (memory[I+i] & (0x80>>j)) != 0){
                         //Pixel should be set
@@ -486,36 +500,33 @@ void cycle(){
     return;
 }
 
-void update_screen(){
-    //Update the screen
+void update_screen()
+{
+    int x, y;   //Screen positions
+    int i,j;  //Pixel offsets
 
-    int i, j, ii,jj;
 
-    SDL_SetRenderDrawColor(ren, 0, 0, 0, 0);
-    if( 0 != SDL_RenderClear(ren)){
-        printf("Error clearing the screen\n");
-    }
-    SDL_SetRenderDrawColor(ren, 255, 255, 255, 255);
-    printf("SDL error(Clear): %s\n", SDL_GetError());
+    //Wash screen white
+    memset(pixels, 255, sizeof(SCREEN_H*ZOOM*SCREEN_W*ZOOM)*sizeof(uint32_t));
+    //Draw what we actually want to draw
+    for(x=0;x<(SCREEN_W - 1);x++){
+        for(y=0;y<(SCREEN_H - 1);y++){
 
-    for(j=0;j<SCREEN_H;j++){
-        
-        for(i=0;i<SCREEN_W;i++){
+            if(screen[y*SCREEN_W+x] != 0){
 
-            if(screen[j*SCREEN_W+i] != 0){
-                
-                for(jj=0;jj<4;jj++)
-                   for(ii=0;ii<4;ii++){
-                        if(0 != SDL_RenderDrawPoint(ren, i+ii, j+jj)){
-                            printf("Error drawing pixel\n");
-                        }
+                for(j=0;j<ZOOM;j++)
+                   for(i=0;i<ZOOM;i++){
+                              pixels[(y*ZOOM+j)*SCREEN_W + (x*ZOOM+i)] = 0;
                    }
 
             }
         }
     }
+    //Push to screen
+    SDL_UpdateTexture(text,NULL, pixels, SCREEN_W*ZOOM*sizeof(uint32_t));
+    SDL_RenderClear(ren);
+    SDL_RenderCopy(ren, text, NULL, NULL);
     SDL_RenderPresent(ren);
-    SDL_Delay(50);
 }
 
 void input(){
@@ -523,9 +534,8 @@ void input(){
     while( (SDL_PollEvent(&event)) ){
         switch(event.type){
             case SDL_KEYDOWN:
-                //key pressed
+                //Fallthrough
             case SDL_KEYUP:
-                //key released
                 if(event.key.keysym.sym == SDLK_0){
                         key[0x0] = ( event.type == SDL_KEYDOWN ? 1 : 0 );
                 }
@@ -576,6 +586,9 @@ void input(){
                 }
                 if(event.key.keysym.sym == SDLK_v){
                         key[0xF] = ( event.type == SDL_KEYDOWN ? 1 : 0 );
+                }
+                if(event.key.keysym.sym == SDLK_p){
+                        running = 0;
                 }
                 break;
             case SDL_QUIT:
