@@ -14,9 +14,12 @@ typedef struct{
     uint8_t keypad[16];
     uint16_t stack[16];
     uint8_t sp;
+    uint8_t delay_timer;
+    uint8_t sound_timer;
 } c8Env;
 
 void c8Env_init(c8Env *env);
 uint8_t c8Env_load_memory(c8Env *env, char *filename);
+uint8_t c8Env_tick(c8Env *env);
 
 #endif
