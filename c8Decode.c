@@ -74,4 +74,6 @@ c8Func decode(uint16_t opcode)
        return c8_LD;
   if(match_opcode(opcode,0xF065,0xF0FF))
        return c8_LD;
+  //Unknown instruction? just do nothing
+  return NULL;
 }

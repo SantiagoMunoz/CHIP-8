@@ -37,7 +37,8 @@ int main(int argc, char **argv)
     do{
         op = fetch(m_env);
         f = decode(op);
-        f(m_env, op);   //Exec
+        if(f)
+            f(m_env, op);   //Exec
         c8Env_tick(m_env); 
         render(m_env,m_io);
     }while(!keyboard(m_env, m_io));
