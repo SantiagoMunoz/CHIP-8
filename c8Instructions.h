@@ -23,9 +23,9 @@ void c8_SHR(c8Env *env, uint16_t opcode);
 void c8_SUBN(c8Env *env, uint16_t opcode);
 void c8_SHL(c8Env *env, uint16_t opcode);
 void c8_RND(c8Env *env, uint16_t opcode);
-void c8_DRAW(c8Env *env, uint16_t opcode);
+void c8_DRW(c8Env *env, uint16_t opcode);
 void c8_SKP(c8Env *env, uint16_t opcode);
-void c8_SKPN(c8Env *env, uint16_t opcode);
+void c8_SKNP(c8Env *env, uint16_t opcode);
 
 #endif
 

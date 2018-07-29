@@ -1,5 +1,6 @@
 #include <stdlib.h>
-#include "c8Instruction.h"
+#include <string.h>
+#include "c8Instructions.h"
 
 uint8_t match_opcode(uint16_t opcode, uint16_t reg, uint16_t mask)
 {
@@ -19,7 +20,7 @@ void c8_RET(c8Env *env, uint16_t opcode)
     if(env->sp == 0)
         return;
     env->sp--;
-    env->pc= stack[sp];
+    env->pc= env->stack[env->sp];
 }
 
 void c8_JP(c8Env *env, uint16_t opcode)
@@ -38,14 +39,14 @@ void c8_CALL(c8Env *env, uint16_t opcode)
 {
     if(env->sp >= 12)
         return;
-    env->stack[sp] = pc;
+    env->stack[env->sp] = env->pc;
     env->sp++;
     env->pc = (opcode & 0x0FFF);
 }
 
 void c8_SE(c8Env *env, uint16_t opcode)
 {
-    if(x8_match_opcode(opcode, 0x3000, 0xF000)){
+    if(match_opcode(opcode, 0x3000, 0xF000)){
         // Vx == kk
         if( env->V[(opcode & 0x0F00)>>8] == (opcode & 0x00FF) )
             env->pc += 4;
@@ -53,7 +54,7 @@ void c8_SE(c8Env *env, uint16_t opcode)
             env->pc += 2;
         return;
     }
-    if(x8_match_opcode(opcode, 0x5000, 0xF000)){
+    if(match_opcode(opcode, 0x5000, 0xF000)){
         //Vx == Vy
         if( env->V[(opcode & 0x0F00)>>8] == env->V[(opcode & 0x00F0)>>4] )
             env->pc += 4;
@@ -101,23 +102,23 @@ void c8_LD(c8Env *env, uint16_t opcode)
         return;
     }
     if(match_opcode(opcode, 0xF033, 0xF0FF)){
-        env->memory[I]   = (env->V[(opcode && 0x0F00) >> 8] & 0xF00 ) >> 8;
-        env->memory[I+1] = (env->V[(opcode && 0x0F00) >> 8] & 0x0F0 ) >> 4;
-        env->memory[I+2] = (env->V[(opcode && 0x0F00) >> 8] & 0x00F );
+        env->memory[env->I]   = (env->V[(opcode && 0x0F00) >> 8] & 0xF00 ) >> 8;
+        env->memory[env->I+1] = (env->V[(opcode && 0x0F00) >> 8] & 0x0F0 ) >> 4;
+        env->memory[env->I+2] = (env->V[(opcode && 0x0F00) >> 8] & 0x00F );
         env->pc += 2;
         return;
     }
     if(match_opcode(opcode, 0xF065, 0xF0FF)){
         int i;
         for(i=0; i< ( (opcode & 0x0F00) >> 8 ); i++)
-            env->V[i] = env->memory[I+i];
-        env->pc += 2;
+            env->V[i] = env->memory[env->I+i];
+            env->pc += 2;
         return;
     }
     if(match_opcode(opcode, 0xF055, 0xF0FF)){
         int i;
         for(i=0; i< ( (opcode & 0x0F00) >> 8 ); i++)
-            env->memory[I+i] = V[i];
+            env->memory[env->I+i] = env->V[i];
         env->pc += 2;
         return;
     }
@@ -147,7 +148,7 @@ void c8_LD(c8Env *env, uint16_t opcode)
     if(match_opcode(opcode, 0xF00A, 0xF0FF)){
         int i;
         for(i=0;i<16;i++)
-            if(env->key[i] == 1){
+            if(env->keypad[i] == 1){
                 env->V[(opcode & 0x0F00) >> 8] = i;
                 env->pc += 2;
                 break;
@@ -155,7 +156,6 @@ void c8_LD(c8Env *env, uint16_t opcode)
         return;
     }
 }
-
 
 void c8_ADD(c8Env *env, uint16_t opcode)
 {
@@ -230,7 +230,7 @@ void c8_RND(c8Env *env, uint16_t opcode)
     env->pc +=2;
 }
 
-void c8_DRAW(c8Env *env, uint16_t opcode)
+void c8_DRW(c8Env *env, uint16_t opcode)
 {
     env->V[16] = 0; //Preemptive flag reset
     uint16_t posy_orig = env->V[(opcode & 0x00F0)>>4];
@@ -244,7 +244,7 @@ void c8_DRAW(c8Env *env, uint16_t opcode)
             posx = posx_orig + j;
             if(posx > 63)   posx -= 63; //If something goes off the screen, draw it coming from the other side
             Vtemp = env->screen[posx+(posy*64)];   //Load contents of current pixel-> (Vx +j, Vy + i) to then calculate the override
-            if( (env->memory[I+i] & (0x80>>j)) != 0){
+            if( (env->memory[env->I+i] & (0x80>>j)) != 0){
                 //Pixel should be set
                 if(Vtemp != 0){
                     //Pixel was already set-> Reset to 0 and drive V16 up
@@ -261,17 +261,16 @@ void c8_DRAW(c8Env *env, uint16_t opcode)
 
 void c8_SKP(c8Env *env, uint16_t opcode)
 {
-    if( ( ((opcode & 0x0F00)>>8) <16) & ( env->key[ (opcode & 0x0F00) >> 8 ] == 1 ) ){
+    if( ( ((opcode & 0x0F00)>>8) <16) & ( env->keypad[ (opcode & 0x0F00) >> 8 ] == 1 ) ){
         env->pc += 4;
     }else{
         env->pc +=2;
     }
 }
 
-void c8_SKPN(c8Env *env, uint16_t opcode)
+void c8_SKNP(c8Env *env, uint16_t opcode)
 {
-
-    if( ( ((opcode & 0x0F00)>>8) <16) & ( env->key[ (opcode & 0x0F00) >> 8 ] == 0 ) ){
+    if( ( ((opcode & 0x0F00)>>8) <16) & ( env->keypad[ (opcode & 0x0F00) >> 8 ] == 0 ) ){
         env->pc += 4;
     }else{
         env->pc +=2;

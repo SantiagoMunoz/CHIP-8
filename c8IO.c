@@ -1,4 +1,4 @@
-#include "c8Screen.h"
+#include "c8IO.h"
 
 
 uint8_t init_io(c8IO *sc)
@@ -7,17 +7,17 @@ uint8_t init_io(c8IO *sc)
     if(SDL_Init(SDL_INIT_VIDEO) != 0)
         return 1;
     SDL_EventState(SDL_MOUSEMOTION, SDL_IGNORE);
-    env->window = SDL_CreateWindow("Chip8", SDL_WINDOWPOS_UNDEFINED, SDL_WINDOWPOS_UNDEFINED, SCREEN_W*ZOOM, SCREEN_H*ZOOM, 0);
-    if(!env)
+    sc->window = SDL_CreateWindow("Chip8", SDL_WINDOWPOS_UNDEFINED, SDL_WINDOWPOS_UNDEFINED, SCREEN_W*ZOOM, SCREEN_H*ZOOM, 0);
+    if(!sc->window)
         return 1;
-    env->ren = SDL_CreateRenderer(env->window, -1, 0);
-    if(!env->ren)
+    sc->ren = SDL_CreateRenderer(sc->window, -1, 0);
+    if(!sc->ren)
         return 1;
-    env->text = SDL_CreateTexture(env->ren, SDL_PIXELFORMAT_ARGB8888, SDL_TEXTUREACCESS_STATIC, SCREEN_W*ZOOM, SCREEN_H*ZOOM);
-    if(!env->text)
+    sc->text = SDL_CreateTexture(sc->ren, SDL_PIXELFORMAT_ARGB8888, SDL_TEXTUREACCESS_STATIC, SCREEN_W*ZOOM, SCREEN_H*ZOOM);
+    if(!sc->text)
         return 1;
-    env->pixels = (uint32_t*)malloc(SCREEN_W*ZOOM*SCREEN_H*ZOOM*sizeof(uint32_t));
-    memset(pixels, 255, SCREEN_W*ZOOM*SCREEN_H*ZOOM);
+    sc->pixels = (uint32_t*)malloc(SCREEN_W*ZOOM*SCREEN_H*ZOOM*sizeof(uint32_t));
+    memset(sc->pixels, 255, SCREEN_W*ZOOM*SCREEN_H*ZOOM);
     return 0;
 }
 
@@ -30,7 +30,7 @@ void teardown_io(c8IO *sc)
     if(sc->window)
         SDL_DestroyWindow(sc->window);
     if(sc->pixels)
-        free(pixels);
+        free(sc->pixels);
     SDL_Quit();
 }
 

@@ -19,7 +19,7 @@
 int main(int argc, char **argv)
 {
     c8Env *m_env = NULL;
-    c8Env *m_io = NULL;
+    c8IO *m_io = NULL;
     uint16_t op;
     c8Func f;
     if(argc < 2){
@@ -39,7 +39,7 @@ int main(int argc, char **argv)
         f = decode(op);
         f(m_env, op);   //Exec
         c8Env_tick(m_env); 
-        c8IO_render(m_env,m_io);
+        render(m_env,m_io);
     }while(!keyboard(m_env, m_io));
 
 cleanup:

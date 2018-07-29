@@ -19,7 +19,7 @@ def get_pattern(p):
     return pattern 
 
 finstruction = open("instruction_list.txt","r")
-decode = open("c8_decode.c","w")
+decode = open("c8Decode.c","w")
 decode.write("#include \"c8_decode.h\"\n\n")
 decode.write("c8Func decode(uint16_t opcode)\n{\n")
 for line in finstruction:
@@ -27,7 +27,7 @@ for line in finstruction:
     pattern = get_pattern(m_list[0])
     mask = get_mask(m_list[0])
     key = m_list[2]
-    decode.write("  if(match_pattern(opcode,0x{},0x{}))\n".format(pattern, mask));
+    decode.write("  if(match_opcode(opcode,0x{},0x{}))\n".format(pattern, mask));
     decode.write("       return c8_{};\n".format(key));
 
 decode.write("}\n")

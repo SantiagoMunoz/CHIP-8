@@ -133,7 +133,7 @@ void c8Env_tick(c8Env *env)
             printf("\a");
         }
     }
-    if(env->delay_timer > 0) --delay_timer;
+    if(env->delay_timer > 0) --env->delay_timer;
 }
 
 uint16_t fetch(c8Env *env)
