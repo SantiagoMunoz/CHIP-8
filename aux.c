@@ -1,5 +1,4 @@
 #include "aux.h"
-
 unsigned char char2byte(char input){
 
 	if((input >= '0') & (input <= '9'))
