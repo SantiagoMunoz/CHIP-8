@@ -105,8 +105,11 @@ void c8Env_init(c8Env *env)
 
     //Init PC
     env->pc = 512;
+    //Init SP
+    env->sp = 0;
 
 }
+
 uint8_t c8Env_load_memory(c8Env *env, char *filename)
 {
     if((!filename) | (!env))
@@ -119,4 +122,21 @@ uint8_t c8Env_load_memory(c8Env *env, char *filename)
     fread(env->memory + 512, 1, 3583, f); //Read up to 3583 elements of 1 byte and store them from position 512
     fclose(f);
     return 0;
+}
+
+void c8Env_tick(c8Env *env)
+{
+    if(env->sound_timer > 0){
+        --env->sound_timer;
+        if(env->sound_timer == 0){
+            //Play sound
+            printf("\a");
+        }
+    }
+    if(env->delay_timer > 0) --delay_timer;
+}
+
+uint16_t fetch(c8Env *env)
+{
+    return (env->memory[env->pc] << 8) | env->memory[env->pc + 1];
 }

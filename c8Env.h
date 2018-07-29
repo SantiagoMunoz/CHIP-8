@@ -20,6 +20,7 @@ typedef struct{
 
 void c8Env_init(c8Env *env);
 uint8_t c8Env_load_memory(c8Env *env, char *filename);
-uint8_t c8Env_tick(c8Env *env);
+uint16_t fetch(c8Env *env);
+void c8Env_tick(c8Env *env);
 
 #endif

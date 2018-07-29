@@ -13,14 +13,12 @@ typedef struct{
     SDL_Window *window;
     SDL_Renderer *ren;
     SDL_Texture *text;
-    uint8_t *pixels;
+    uint32_t *pixels;
 } c8IO;
 
 uint8_t init_io(c8IO *sc);
-uint8_t teardown_io(c8IO *sc);
+void teardown_io(c8IO *sc);
 void render(c8Env *env, c8IO *sc);
 uint8_t keyboard(c8Env *env, c8IO *sc);
-
-//SDL_Quit();
 
 #endif
