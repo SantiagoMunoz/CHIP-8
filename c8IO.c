@@ -63,69 +63,50 @@ void render(c8Env *env, c8IO *sc)
 uint8_t keyboard(c8Env *env, c8IO *sc)
 {
     SDL_Event event;
+	int val, key;
     while( (SDL_PollEvent(&event)) ){
-        switch(event.type){
-            case SDL_KEYDOWN:
-                //Fallthrough
-            case SDL_KEYUP:
-                if(event.key.keysym.sym == SDLK_0){
-                        env->keypad[0x0] = ( event.type == SDL_KEYDOWN ? 1 : 0 );
-                }
-                if(event.key.keysym.sym == SDLK_1){
-                        env->keypad[0x1] = ( event.type == SDL_KEYDOWN ? 1 : 0 );
-                }
-                if(event.key.keysym.sym == SDLK_2){
-                        env->keypad[0x2] = ( event.type == SDL_KEYDOWN ? 1 : 0 );
-                }
-                if(event.key.keysym.sym == SDLK_3){
-                        env->keypad[0x3] = ( event.type == SDL_KEYDOWN ? 1 : 0 );
-                }
-                if(event.key.keysym.sym == SDLK_4){
-                        env->keypad[0xC] = ( event.type == SDL_KEYDOWN ? 1 : 0 );
-                }
-                if(event.key.keysym.sym == SDLK_q){
-                        env->keypad[0x4] = ( event.type == SDL_KEYDOWN ? 1 : 0 );
-                }
-                if(event.key.keysym.sym == SDLK_w){
-                        env->keypad[0x5] = ( event.type == SDL_KEYDOWN ? 1 : 0 );
-                }
-                if(event.key.keysym.sym == SDLK_e){
-                        env->keypad[0x6] = ( event.type == SDL_KEYDOWN ? 1 : 0 );
-                }
-                if(event.key.keysym.sym == SDLK_r){
-                        env->keypad[0xD] = ( event.type == SDL_KEYDOWN ? 1 : 0 );
-                }
-                if(event.key.keysym.sym == SDLK_a){
-                        env->keypad[0x7] = ( event.type == SDL_KEYDOWN ? 1 : 0 );
-                }
-                if(event.key.keysym.sym == SDLK_s){
-                        env->keypad[0x8] = ( event.type == SDL_KEYDOWN ? 1 : 0 );
-                }
-                if(event.key.keysym.sym == SDLK_d){
-                        env->keypad[0x9] = ( event.type == SDL_KEYDOWN ? 1 : 0 );
-                }
-                if(event.key.keysym.sym == SDLK_f){
-                        env->keypad[0xE] = ( event.type == SDL_KEYDOWN ? 1 : 0 );
-                }
-                if(event.key.keysym.sym == SDLK_z){
-                        env->keypad[0xA] = ( event.type == SDL_KEYDOWN ? 1 : 0 );
-                }
-                if(event.key.keysym.sym == SDLK_x){
-                        env->keypad[0x0] = ( event.type == SDL_KEYDOWN ? 1 : 0 );
-                }
-                if(event.key.keysym.sym == SDLK_c){
-                        env->keypad[0xB] = ( event.type == SDL_KEYDOWN ? 1 : 0 );
-                }
-                if(event.key.keysym.sym == SDLK_v){
-                        env->keypad[0xF] = ( event.type == SDL_KEYDOWN ? 1 : 0 );
-                }
-                if(event.key.keysym.sym == SDLK_p){
-                        return 1;
-                }
-                break;
-            case SDL_QUIT:
+		if(event.type == SDL_QUIT)
+				return 1;
+		if((event.type != SDL_KEYDOWN) & (event.type != SDL_KEYUP))
+				continue;
+		val = (event.type == SDL_KEYDOWN) ? 1 : 0;
+        if(event.key.keysym.sym == SDLK_0)
+				key = 0x0;
+		else if(event.key.keysym.sym == SDLK_1)
+                key = 0x1;
+		else if(event.key.keysym.sym == SDLK_2)
+                key = 0x2;
+		else if(event.key.keysym.sym == SDLK_3)
+                key = 0x3;
+		else if(event.key.keysym.sym == SDLK_4)
+                key = 0xC;
+		else if(event.key.keysym.sym == SDLK_q)
+                key = 0x4;
+		else if(event.key.keysym.sym == SDLK_w)
+                key = 0x5;
+		else if(event.key.keysym.sym == SDLK_e)
+                key = 0x6;
+		else if(event.key.keysym.sym == SDLK_r)
+                key = 0xD;
+		else if(event.key.keysym.sym == SDLK_a)
+                key = 0x7;
+		else if(event.key.keysym.sym == SDLK_s)
+                 key = 0x8;
+		else if(event.key.keysym.sym == SDLK_d)
+                 key = 0x9;
+		else if(event.key.keysym.sym == SDLK_f)
+                 key = 0xE;
+		else if(event.key.keysym.sym == SDLK_z)
+                 key = 0xA;
+		else if(event.key.keysym.sym == SDLK_x)
+                 key = 0x0;
+		else if(event.key.keysym.sym == SDLK_c)
+                 key = 0xB;
+		else if(event.key.keysym.sym == SDLK_v)
+                key = 0xF;
+		else if(event.key.keysym.sym == SDLK_p)
                 return 1;
-        } //end switch
+		env->keypad[key] = val;
     } //end while
     return 0;
 }
