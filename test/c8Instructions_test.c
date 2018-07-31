@@ -5,7 +5,7 @@
 
 c8Env tEnv;
 
-START_TEST(c8_CLS)
+START_TEST(CLS)
 {
     c8Env_init(&tEnv);
     //Set some pixels on
@@ -22,7 +22,7 @@ START_TEST(c8_CLS)
 }
 END_TEST
 
-START_TEST(c8_RET)
+START_TEST(RET)
 {
     c8Env_init(&tEnv);
     //Setup tEnv as if we were inside a subroutine
@@ -43,8 +43,8 @@ Suite *instruction_suite(void)
     Suite *s = suite_create("Instructions");
     TCase *tc_core = tcase_create("Core");
 
-    tcase_add_test(tc_core, c8_CLS);
-    tcase_add_test(tc_core, c8_RET);
+    tcase_add_test(tc_core, CLS);
+    tcase_add_test(tc_core, RET);
 
     suite_add_tcase(s, tc_core);
     return s;

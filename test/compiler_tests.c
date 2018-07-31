@@ -5,7 +5,6 @@
 #include <stdlib.h>
 #include <string.h>
 #include <stdio.h>
-#include "aux.h"
 
 unsigned char char2byte(char input){
 
