@@ -226,6 +226,70 @@ START_TEST(LD)
 }
 END_TEST
 
+START_TEST(ADD)
+{
+    c8Env_init(&tEnv);
+    tEnv.V[3] = 0x5;
+    tEnv.pc = 0;
+    c8_ADD(&tEnv, 0x7348);
+    ck_assert_msg( tEnv.V[3] == (0x5+0x48),
+            "ADD Vx += kk yields an incorrect result");
+    ck_assert_msg(tEnv.pc == 2,
+            "ADD does  not increase the program counter");
+    tEnv.pc = 0;
+    tEnv.V[0] = 0xFF;
+    tEnv.V[1] = 0x2;
+    tEnv.V[15] = 0;
+    c8_ADD(&tEnv, 0x8014);
+    ck_assert_msg(tEnv.V[0] == 0x1,
+            "ADD Vx += Vy yields an incorrect result");
+    ck_assert_msg(tEnv.pc == 2,
+            "ADD does not increase the program counter");
+    ck_assert_msg(tEnv.V[15] == 1,
+            "ADD does not set the carry flag when it should");
+    c8_ADD(&tEnv, 0x8014);
+    ck_assert_msg(tEnv.V[15] == 0,
+            "ADD does not clear the carry flag when it should");
+    tEnv.I = 0x33;
+    tEnv.pc = 0;
+    tEnv.V[6] = 0x10;
+    c8_ADD(&tEnv, 0xF61E);
+    ck_assert_msg(tEnv.I = 0x43,
+            "ADD I += Vx yields an incorrect result");
+    ck_assert_msg(tEnv.pc == 2,
+            "ADD does not increase the program counter");
+}
+END_TEST
+
+START_TEST(OR)
+{
+    c8Env_init(&tEnv);
+    tEnv.pc = 0;
+    tEnv.V[1] = 0xFA;
+    tEnv.V[2] = 0x0B;
+    c8_OR(&tEnv, 0x8121);
+    ck_assert_msg(tEnv.V[1] == 0xFA | 0x0B,
+            "Bitwise OR does not yield the correct result");
+    ck_assert_msg(tEnv.pc == 2,
+            "Bitwise OR does not increase the program counter");
+}
+END_TEST
+
+
+START_TEST(AND)
+{
+    c8Env_init(&tEnv);
+    tEnv.pc = 0;
+    tEnv.V[1] = 0xF3;
+    tEnv.V[2] = 0xF1;
+    c8_OR(&tEnv, 0x8122);
+    ck_assert_msg(tEnv.V[1] == 0xF3 & 0xF1,
+            "Bitwise AND does not yield the correct result");
+    ck_assert_msg(tEnv.pc == 2,
+            "Bitwise AND does not increase the program counter");
+}
+END_TEST
+
 Suite *instruction_suite(void)
 {
     Suite *s = suite_create("Instructions");
@@ -238,6 +302,10 @@ Suite *instruction_suite(void)
     tcase_add_test(tc_core, SE);
 	tcase_add_test(tc_core, SNE);
 	tcase_add_test(tc_core, LD);
+    tcase_add_test(tc_core, ADD);
+    tcase_add_test(tc_core, OR);
+    tcase_add_test(tc_core, AND);
+
 
     suite_add_tcase(s, tc_core);
     return s;

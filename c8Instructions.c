@@ -167,7 +167,7 @@ void c8_ADD(c8Env *env, uint16_t opcode)
     if(match_opcode(opcode, 0x8004, 0xF00F)){
         uint16_t Vtemp = env->V[(opcode & 0x0F00)>>8];
         env->V[(opcode & 0x0F00)>>8] = env->V[(opcode & 0x0F00)>>8] + env->V[(opcode & 0x00F0)>>4];
-        env->V[16] = (Vtemp > env->V[(opcode & 0x0F00)>>8]) ? 1 : 0;
+        env->V[15] = (Vtemp > env->V[(opcode & 0x0F00)>>8]) ? 1 : 0;
         env->pc += 2;
         return;
     }
