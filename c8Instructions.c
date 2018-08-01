@@ -102,22 +102,22 @@ void c8_LD(c8Env *env, uint16_t opcode)
         return;
     }
     if(match_opcode(opcode, 0xF033, 0xF0FF)){
-        env->memory[env->I]   = (env->V[(opcode && 0x0F00) >> 8] & 0xF00 ) >> 8;
-        env->memory[env->I+1] = (env->V[(opcode && 0x0F00) >> 8] & 0x0F0 ) >> 4;
-        env->memory[env->I+2] = (env->V[(opcode && 0x0F00) >> 8] & 0x00F );
+        env->memory[env->I]   = env->V[(opcode & 0x0F00) >> 8] / 100;
+        env->memory[env->I+1] = env->V[(opcode & 0x0F00) >> 8] % 100 / 10;
+        env->memory[env->I+2] = env->V[(opcode & 0x0F00) >> 8] % 10;
         env->pc += 2;
         return;
     }
     if(match_opcode(opcode, 0xF065, 0xF0FF)){
         int i;
-        for(i=0; i< ( (opcode & 0x0F00) >> 8 ); i++)
+        for(i=0; i<= ( (opcode & 0x0F00) >> 8 ); i++)
             env->V[i] = env->memory[env->I+i];
             env->pc += 2;
         return;
     }
     if(match_opcode(opcode, 0xF055, 0xF0FF)){
         int i;
-        for(i=0; i< ( (opcode & 0x0F00) >> 8 ); i++)
+        for(i=0; i<= ( (opcode & 0x0F00) >> 8 ); i++)
             env->memory[env->I+i] = env->V[i];
         env->pc += 2;
         return;
@@ -141,7 +141,7 @@ void c8_LD(c8Env *env, uint16_t opcode)
         return;
     }
     if(match_opcode(opcode, 0xF007, 0xF0FF)){
-        env->V[ (opcode * 0x0F00) >> 8 ] = env->delay_timer;
+        env->V[ (opcode & 0x0F00) >> 8 ] = env->delay_timer;
         env->pc += 2;
         return;
     }
