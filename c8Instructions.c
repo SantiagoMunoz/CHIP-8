@@ -219,7 +219,7 @@ void c8_SUBN(c8Env *env, uint16_t opcode)
 
 void c8_SHL(c8Env *env, uint16_t opcode)
 {
-    env->V[16] = (env->V[(opcode & 0x0F00)>>8] & 0x8000) > 0 ? 1 : 0;
+    env->V[15] = (env->V[(opcode & 0x0F00)>>8] & 0x8000) > 0 ? 1 : 0;
     env->V[(opcode & 0x0F00)>>8] = env->V[(opcode & 0x0F00)>>8] << 1; //LSL = Multiply by 2
     env->pc += 2;
 }
@@ -261,7 +261,7 @@ void c8_DRW(c8Env *env, uint16_t opcode)
 
 void c8_SKP(c8Env *env, uint16_t opcode)
 {
-    if( ( ((opcode & 0x0F00)>>8) <16) & ( env->keypad[ (opcode & 0x0F00) >> 8 ] == 1 ) ){
+    if(  env->keypad[ env->V[(opcode & 0x0F00) >> 8] ] == 1  ){
         env->pc += 4;
     }else{
         env->pc +=2;
@@ -270,7 +270,7 @@ void c8_SKP(c8Env *env, uint16_t opcode)
 
 void c8_SKNP(c8Env *env, uint16_t opcode)
 {
-    if( ( ((opcode & 0x0F00)>>8) <16) & ( env->keypad[ (opcode & 0x0F00) >> 8 ] == 0 ) ){
+    if(  env->keypad[ env->V[(opcode & 0x0F00) >> 8] ] == 0 ){
         env->pc += 4;
     }else{
         env->pc +=2;

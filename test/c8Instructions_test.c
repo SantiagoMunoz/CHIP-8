@@ -373,6 +373,69 @@ START_TEST(SUBN)
 }
 END_TEST
 
+START_TEST(SHL)
+{
+	c8Env_init(&tEnv);
+	tEnv.V[9] = 0x2;
+	tEnv.V[15] = 0;
+	tEnv.pc = 0;
+	c8_SHL(&tEnv, 0x890E);
+	ck_assert_msg( tEnv.V[15] == 0,
+					"SHL sets VF when the LSB is 0");
+	ck_assert_msg( tEnv.V[9] == 0x4,
+					"SHL does not multiply by two correctly");
+	ck_assert_msg( tEnv.pc == 2,
+					"SHL does not increase the program counter");
+	tEnv.V[9] = 0x1;
+	c8_SHR(&tEnv, 0x8906);
+	ck_assert_msg( tEnv.V[15] == 1,
+					"SHL does not set VF when the LSB is 1");
+}
+END_TEST
+
+START_TEST(DRW)
+{
+	//TODO Implement
+
+
+}
+END_TEST
+
+START_TEST(SKP)
+{
+	c8Env_init(&tEnv);
+	tEnv.pc = 0;
+	tEnv.V[0] = 4;
+	tEnv.keypad[4] = 1;
+	c8_SKP(&tEnv, 0xE09E);
+	ck_assert_msg(tEnv.pc == 4,
+					"SKP does not skip instruction when key Vx is pressed");
+	tEnv.keypad[4] = 0;
+	tEnv.pc = 0;
+	c8_SKP(&tEnv, 0xE09E);
+	ck_assert_msg(tEnv.pc == 2,
+					"SKP skips instruction when key Vx is not pressed");
+}
+END_TEST
+
+START_TEST(SKNP)
+{
+	c8Env_init(&tEnv);
+	tEnv.pc = 0;
+	tEnv.V[0] = 4;
+	tEnv.keypad[4] = 1;
+	c8_SKNP(&tEnv, 0xE01A);
+	ck_assert_msg(tEnv.pc == 2,
+					"SKNP skips instruction when key Vx is not pressed");
+	tEnv.keypad[4] = 0;
+	tEnv.pc = 0;
+	c8_SKNP(&tEnv, 0xE01A);
+	ck_assert_msg(tEnv.pc == 4,
+					"SKNP does not skip instruction when key Vx is pressed");
+
+}
+END_TEST
+
 Suite *instruction_suite(void)
 {
     Suite *s = suite_create("Instructions");
@@ -392,7 +455,10 @@ Suite *instruction_suite(void)
 	tcase_add_test(tc_core, SUB);
 	tcase_add_test(tc_core, SHR);
 	tcase_add_test(tc_core, SUBN);
-
+	tcase_add_test(tc_core, SHL);
+	tcase_add_test(tc_core, DRW);
+	tcase_add_test(tc_core, SKP);
+	tcase_add_test(tc_core, SKNP);
     suite_add_tcase(s, tc_core);
     return s;
 }
