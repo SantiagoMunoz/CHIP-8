@@ -275,7 +275,6 @@ START_TEST(OR)
 }
 END_TEST
 
-
 START_TEST(AND)
 {
     c8Env_init(&tEnv);
@@ -287,6 +286,90 @@ START_TEST(AND)
             "Bitwise AND does not yield the correct result");
     ck_assert_msg(tEnv.pc == 2,
             "Bitwise AND does not increase the program counter");
+}
+END_TEST
+
+START_TEST(XOR)
+{
+    c8Env_init(&tEnv);
+    tEnv.pc = 0;
+    tEnv.V[1] = 0xFA;
+    tEnv.V[2] = 0xFB;
+    c8_OR(&tEnv, 0x8123);
+    ck_assert_msg(tEnv.V[1] == 0xFA ^ 0xFB,
+            "Bitwise AND does not yield the correct result");
+    ck_assert_msg(tEnv.pc == 2,
+            "Bitwise AND does not increase the program counter");
+}
+END_TEST
+
+START_TEST(SUB)
+{
+	c8Env_init(&tEnv);
+	tEnv.pc = 0;
+	tEnv.V[0] = 0x4;
+	tEnv.V[1] = 0x5;
+	tEnv.V[15] = 0;
+	c8_SUB(&tEnv, 0x8015);
+	ck_assert_msg( tEnv.V[0] == 0xFF,
+					"SUB does not yield the correct result");
+	ck_assert_msg( tEnv.V[15] == 0,
+					"SUB does not set the carry flag when it should");
+	ck_assert_msg( tEnv.pc == 2,
+					"SUB does not increase the program counter");
+	tEnv.V[0] = 0x5;
+	tEnv.V[1] = 0x4;
+	tEnv.V[15] = 0;
+	c8_SUB(&tEnv, 0x8015);
+	ck_assert_msg( tEnv.V[0] == 0x01,
+					"SUB does not yield the correct result");
+	ck_assert_msg( tEnv.V[15] == 1,
+					"SUB sets the carry flag when it should not");
+
+}
+END_TEST
+
+START_TEST(SHR)
+{
+	c8Env_init(&tEnv);
+	tEnv.V[9] = 0x2;
+	tEnv.V[15] = 0;
+	tEnv.pc = 0;
+	c8_SHR(&tEnv, 0x8906);
+	ck_assert_msg( tEnv.V[15] == 0,
+					"SHR sets VF when the LSB is 0");
+	ck_assert_msg( tEnv.V[9] == 0x1,
+					"SHR does not divide by two correctly");
+	ck_assert_msg( tEnv.pc == 2,
+					"SHR does not increase the program counter");
+	tEnv.V[9] = 0x1;
+	c8_SHR(&tEnv, 0x8906);
+	ck_assert_msg( tEnv.V[15] == 1,
+					"SHR does not set VF when the LSB is 1");
+}
+END_TEST
+
+START_TEST(SUBN)
+{
+	tEnv.pc = 0;
+	tEnv.V[0] = 0x4;
+	tEnv.V[1] = 0x5;
+	tEnv.V[15] = 0;
+	c8_SUBN(&tEnv, 0x8017);
+	ck_assert_msg( tEnv.V[0] == 0x01,
+					"SUBN does not yield the correct result");
+	ck_assert_msg( tEnv.V[15] == 1,
+					"SUBN does not set the carry flag when it should");
+	ck_assert_msg( tEnv.pc == 2,
+					"SUBN does not increase the program counter");
+	tEnv.V[0] = 0x5;
+	tEnv.V[1] = 0x4;
+	tEnv.V[15] = 0;
+	c8_SUBN(&tEnv, 0x8017);
+	ck_assert_msg( tEnv.V[0] == 0xFF,
+					"SUBN does not yield the correct result");
+	ck_assert_msg( tEnv.V[15] == 0,
+					"SUBN sets the carry flag when it should not");
 }
 END_TEST
 
@@ -305,7 +388,10 @@ Suite *instruction_suite(void)
     tcase_add_test(tc_core, ADD);
     tcase_add_test(tc_core, OR);
     tcase_add_test(tc_core, AND);
-
+	tcase_add_test(tc_core, XOR);
+	tcase_add_test(tc_core, SUB);
+	tcase_add_test(tc_core, SHR);
+	tcase_add_test(tc_core, SUBN);
 
     suite_add_tcase(s, tc_core);
     return s;

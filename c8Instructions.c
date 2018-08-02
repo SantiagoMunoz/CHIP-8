@@ -198,22 +198,22 @@ void c8_XOR(c8Env *env, uint16_t opcode)
 
 void c8_SUB(c8Env *env, uint16_t opcode)
 {
-   env->V[16] = env->V[(opcode & 0x0F00)>>8] > env->V[(opcode & 0x00F0)>>4] ? 1 : 0;
+   env->V[15] = env->V[(opcode & 0x0F00)>>8] > env->V[(opcode & 0x00F0)>>4] ? 1 : 0;
    env->V[(opcode & 0x0F00)>>8] = env->V[(opcode & 0x0F00)>>8] - env->V[(opcode & 0x00F0)>>4];
    env->pc+= 2;
 }
 
 void c8_SHR(c8Env *env, uint16_t opcode)
 {
-    env->V[16] = (env->V[(opcode & 0x0F00)>>8] & 0x0001) > 0 ? 1 : 0;
+    env->V[15] = (env->V[(opcode & 0x0F00)>>8] & 0x0001) != 0 ? 1 : 0;
     env->V[(opcode & 0x0F00)>>8] = env->V[(opcode & 0x0F00)>>8] >> 1; //LSR = Divide by 2
     env->pc += 2;
 }
 
 void c8_SUBN(c8Env *env, uint16_t opcode)
 {
-    env->V[16] = env->V[(opcode & 0x00F0)>>8] > env->V[(opcode & 0x0F00)>>4] ? 1 : 0;
-    env->V[(opcode & 0x0F00)>>8] = env->V[(opcode & 0x00F0)>>8] - env->V[(opcode & 0x0F00)>>4];
+    env->V[15] = env->V[(opcode & 0x00F0)>>4] > env->V[(opcode & 0x0F00)>>8] ? 1 : 0;
+    env->V[(opcode & 0x0F00)>>8] = env->V[(opcode & 0x00F0)>>4] - env->V[(opcode & 0x0F00)>>8];
     env->pc += 2;
 }
 
