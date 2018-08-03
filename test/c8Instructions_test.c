@@ -395,9 +395,37 @@ END_TEST
 
 START_TEST(DRW)
 {
-	//TODO Implement
-
-
+	c8Env_init(&tEnv);
+	tEnv.V[0] = 10;
+	tEnv.V[1] = 10;
+	tEnv.V[15] = 0;
+	tEnv.I = 0;
+	tEnv.pc = 0;
+	c8_DRW(&tEnv, 0xD015); // Draw digit 0 in the screen
+	ck_assert_msg(tEnv.pc == 2,
+					"DRW does not increase the program counter");
+	ck_assert_msg(tEnv.V[15] == 0,
+					"DRW set VF to 1 when there is no collision");
+	//Check that pixels are set
+	int i,j;
+	for(i=0;i<5;i++){
+		for(j=0;j<8;j++){
+			ck_assert_msg(tEnv.screen[(tEnv.V[1]+i)*SCREEN_W+tEnv.V[0]+j] == ((tEnv.memory[tEnv.I+i] & (0x80 >> j)) != 0),
+					"DRW pixel value mismatch!");
+		}
+	}
+	//Paint a 0 again but 1 pixel to the right
+	tEnv.V[0] = 11;
+	c8_DRW(&tEnv, 0xD015); // Draw digit 0 in the screen
+	ck_assert_msg(tEnv.V[15] == 1,
+					"DRW does not set VF to 1 when there is a collision");
+	//Check collisions get XORed correctly in the screen
+	for(j=0;j<2;j++){
+		for(i=0;i<3;i++){
+			ck_assert_msg(tEnv.screen[(tEnv.V[1]+(j*4))*SCREEN_W+tEnv.V[0]+i] == 0,
+					"DRW does not XOR pixels correctly");
+		}
+	}
 }
 END_TEST
 

@@ -232,7 +232,7 @@ void c8_RND(c8Env *env, uint16_t opcode)
 
 void c8_DRW(c8Env *env, uint16_t opcode)
 {
-    env->V[16] = 0; //Preemptive flag reset
+    env->V[15] = 0; //Preemptive flag reset
     uint16_t posy_orig = env->V[(opcode & 0x00F0)>>4];
     uint16_t posx_orig = env->V[(opcode & 0x0F00)>>8];
     int i,j;
@@ -240,16 +240,16 @@ void c8_DRW(c8Env *env, uint16_t opcode)
     for(i=0; i < (opcode & 0x000F); i++){ // i - stride y
         posy = posy_orig + i;
         if (posy > 31)  posy -= 32;
-        for(j=0;j < 8; j++){ // j - stride x (Sprites are ALWAYS 8 bit long)
+        for(j=0;j < 8; j++){ // j - stride x (Sprites are ALWAYS 8 bit wide)
             posx = posx_orig + j;
-            if(posx > 63)   posx -= 63; //If something goes off the screen, draw it coming from the other side
+            if(posx > 63)   posx -= 64; //If something goes off the screen, draw it coming from the other side
             Vtemp = env->screen[posx+(posy*64)];   //Load contents of current pixel-> (Vx +j, Vy + i) to then calculate the override
             if( (env->memory[env->I+i] & (0x80>>j)) != 0){
                 //Pixel should be set
                 if(Vtemp != 0){
                     //Pixel was already set-> Reset to 0 and drive V16 up
                     env->screen[posx+(64*posy)] = 0;
-                    env->V[16] = 1;
+                    env->V[15] = 1;
                 }else{
                     env->screen[posx+(64*posy)] = 1;
                 }
