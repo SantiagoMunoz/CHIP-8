@@ -9,6 +9,7 @@
 #include <stdlib.h>
 #include <stdint.h>
 #include <time.h>
+#include <unistd.h>
 #include "c8Env.h"
 #include "c8IO.h"
 #include "c8Instructions.h"
@@ -40,6 +41,7 @@ int main(int argc, char **argv)
         if(f)
             f(m_env, op);   //Exec
         c8Env_tick(m_env); 
+		usleep(2000);
         render(m_env,m_io);
     }while(!keyboard(m_env, m_io));
 

@@ -17,7 +17,7 @@ uint8_t init_io(c8IO *sc)
     if(!sc->text)
         return 1;
     sc->pixels = (uint32_t*)malloc(SCREEN_W*ZOOM*SCREEN_H*ZOOM*sizeof(uint32_t));
-    memset(sc->pixels, 255, SCREEN_W*ZOOM*SCREEN_H*ZOOM);
+    memset(sc->pixels, 255, SCREEN_W*ZOOM*SCREEN_H*ZOOM*sizeof(uint32_t));
     return 0;
 }
 
@@ -36,20 +36,19 @@ void teardown_io(c8IO *sc)
 
 void render(c8Env *env, c8IO *sc)
 {
-
     int x, y;   //Screen positions
     int i,j;    //Pixel offsets
 
     //Wash screen white
-    memset(sc->pixels, 255, sizeof(SCREEN_H*ZOOM*SCREEN_W*ZOOM)*sizeof(uint32_t));
+    memset(sc->pixels, 255, SCREEN_H*ZOOM*SCREEN_W*ZOOM*sizeof(uint32_t));
     //Draw what we actually want to draw
-    for(x=0;x<(SCREEN_W - 1);x++){
-        for(y=0;y<(SCREEN_H - 1);y++){
+    for(x=0;x<SCREEN_W;x++){
+        for(y=0;y<SCREEN_H;y++){
 
             if(env->screen[y*SCREEN_W+x] != 0){
                 for(j=0;j<ZOOM;j++)
                     for(i=0;i<ZOOM;i++)
-                        sc->pixels[(y*ZOOM+j)*SCREEN_W + (x*ZOOM+i)] = 0;
+                        sc->pixels[(y*ZOOM+j)*SCREEN_W*ZOOM + (x*ZOOM+i)] = 0;
             }
         }
     }
