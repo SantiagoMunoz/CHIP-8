@@ -105,6 +105,8 @@ uint8_t keyboard(c8Env *env, c8IO *sc)
                 key = 0xF;
 		else if(event.key.keysym.sym == SDLK_p)
                 return 1;
+        else
+            continue;
 		env->keypad[key] = val;
     } //end while
     return 0;
