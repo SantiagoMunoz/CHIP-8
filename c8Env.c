@@ -140,5 +140,8 @@ void c8Env_tick(c8Env *env)
 uint16_t fetch(c8Env *env)
 {
     uint16_t tmp = ( (uint16_t)(env->memory[env->pc]) << 8 ) | (uint16_t)(env->memory[env->pc + 1]);
+    if(env->debug){
+        printf("0x%X - 0x%04X: ", env->pc, tmp);
+    }
     return tmp;
 }

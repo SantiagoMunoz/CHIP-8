@@ -24,14 +24,19 @@ int main(int argc, char **argv)
     uint16_t op;
     c8Func f;
     if(argc < 2){
-        printf("Usage: chip8 <filename>\n");
+        printf("Usage: chip8 <filename> [-d]\n");
         return 1;
     }
-
     m_env = (c8Env*)malloc(sizeof(c8Env));
     c8Env_init(m_env);
     if(c8Env_load_memory(m_env,argv[1]))
         goto cleanup;
+    if(argc == 3){
+        if(strcmp(argv[2],"-d") == 0){
+            m_env->debug = 1;
+            printf("Running on DEBUG mode\n");
+        }
+    }
     m_io = (c8IO*)malloc(sizeof(c8IO));
     if(init_io(m_io))
         goto cleanup;
@@ -41,9 +46,11 @@ int main(int argc, char **argv)
         if(f)
             f(m_env, op);   //Exec
         else
-            printf("Warning: Found unknown instruction.");
+            break;
+        if(m_env->debug)
+            printf("\n");
         c8Env_tick(m_env); 
-		usleep(2000);
+		usleep(20000);
         render(m_env,m_io);
     }while(!keyboard(m_env, m_io));
 

@@ -6,6 +6,7 @@
 #define SCREEN_H    32
 
 typedef struct{
+    uint8_t debug;
     uint8_t memory[4096];
     uint8_t V[16];
     uint16_t I;

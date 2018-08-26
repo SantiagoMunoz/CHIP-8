@@ -1,5 +1,6 @@
 #include <stdlib.h>
 #include <string.h>
+#include <stdio.h>
 #include "c8Instructions.h"
 
 uint8_t match_opcode(uint16_t opcode, uint16_t reg, uint16_t mask)
@@ -11,12 +12,16 @@ uint8_t match_opcode(uint16_t opcode, uint16_t reg, uint16_t mask)
 
 void c8_CLS(c8Env *env, uint16_t opcode)
 {
+    if(env->debug)
+        printf("CLS");
     memset(env->screen, 0x00, SCREEN_W*SCREEN_H);
     env->pc += 2;
 }
 
 void c8_RET(c8Env *env, uint16_t opcode)
 {
+    if(env->debug)
+        printf("RET");
     if(env->sp == 0)
         return;
     env->sp--;
@@ -27,16 +32,22 @@ void c8_JP(c8Env *env, uint16_t opcode)
 {
     if(match_opcode(opcode, 0x1000, 0xF000)){
         env->pc = (opcode & 0x0FFF);
+        if(env->debug)
+            printf("JP (inmediate, 0x%X)", env->pc);
         return;
     }
     if(match_opcode(opcode, 0xB000, 0xF000)){
         env->pc = env->V[0] + (opcode & 0x0FFF);
+        if(env->debug)
+            printf("JP (inmediate + V[0], 0x%X)", env->pc);
         return;
     }
 }
 
 void c8_CALL(c8Env *env, uint16_t opcode)
 {
+    if(env->debug)
+        printf("CALL");
     if(env->sp >= 12)
         return;
     env->stack[env->sp] = env->pc;
@@ -48,6 +59,8 @@ void c8_SE(c8Env *env, uint16_t opcode)
 {
     if(match_opcode(opcode, 0x3000, 0xF000)){
         // Vx == kk
+        if(env->debug)
+            printf("SE V%X, 0x%X", (opcode & 0x0F00)>>8, opcode & 0x00FF);
         if( env->V[(opcode & 0x0F00)>>8] == (opcode & 0x00FF) )
             env->pc += 4;
         else
@@ -56,6 +69,8 @@ void c8_SE(c8Env *env, uint16_t opcode)
     }
     if(match_opcode(opcode, 0x5000, 0xF000)){
         //Vx == Vy
+        if(env->debug)
+            printf("SE V%X, V%X", (opcode & 0x0F00)>>8, (opcode & 0x00F)>>4);
         if( env->V[(opcode & 0x0F00)>>8] == env->V[(opcode & 0x00F0)>>4] )
             env->pc += 4;
         else
@@ -67,6 +82,9 @@ void c8_SE(c8Env *env, uint16_t opcode)
 void c8_SNE(c8Env *env, uint16_t opcode)
 {
     if(match_opcode(opcode, 0x4000, 0xF000)){
+
+        if(env->debug)
+            printf("SNE V%X, 0x%X", (opcode & 0x0F00)>>8, opcode & 0x00FF);
         if(env->V[(opcode & 0x0F00)>>8] != (opcode & 0x00FF)){
             env->pc += 4;
         }else{
@@ -75,6 +93,9 @@ void c8_SNE(c8Env *env, uint16_t opcode)
         return;
     }
     if(match_opcode(opcode, 0x9000, 0xF00F)){
+
+        if(env->debug)
+            printf("SNE V%X, V%X", (opcode & 0x0F00)>>8, (opcode & 0x00F)>>4);
         if(env->V[(opcode & 0x0F00) >> 8] != env->V[(opcode & 0x00F0) >> 4]){
             env->pc += 4;
         }else{
