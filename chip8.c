@@ -40,6 +40,8 @@ int main(int argc, char **argv)
         f = decode(op);
         if(f)
             f(m_env, op);   //Exec
+        else
+            printf("Warning: Found unknown instruction.");
         c8Env_tick(m_env); 
 		usleep(2000);
         render(m_env,m_io);

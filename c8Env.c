@@ -104,7 +104,7 @@ void c8Env_init(c8Env *env)
     env->memory[0x04F] = 0x80;
 
     //Init PC
-    env->pc = 512;
+    env->pc = 512;  //Start address 0x200
     //Init SP
     env->sp = 0;
 
@@ -127,16 +127,18 @@ uint8_t c8Env_load_memory(c8Env *env, char *filename)
 void c8Env_tick(c8Env *env)
 {
     if(env->sound_timer > 0){
-        --env->sound_timer;
+        env->sound_timer -= 1;
         if(env->sound_timer == 0){
             //Play sound
             printf("\a");
         }
     }
-    if(env->delay_timer > 0) --env->delay_timer;
+    if(env->delay_timer > 0)
+        env->delay_timer -= 1;
 }
 
 uint16_t fetch(c8Env *env)
 {
-    return (env->memory[env->pc] << 8) | env->memory[env->pc + 1];
+    uint16_t tmp = ( (uint16_t)(env->memory[env->pc]) << 8 ) | (uint16_t)(env->memory[env->pc + 1]);
+    return tmp;
 }

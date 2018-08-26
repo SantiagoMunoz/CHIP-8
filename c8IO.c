@@ -23,12 +23,12 @@ uint8_t init_io(c8IO *sc)
 
 void teardown_io(c8IO *sc)
 {
-    if(sc->text)
-        SDL_DestroyTexture(sc->text);
-    if(sc->ren)
-        SDL_DestroyRenderer(sc->ren);
     if(sc->window)
         SDL_DestroyWindow(sc->window);
+    if(sc->ren)
+        SDL_DestroyRenderer(sc->ren);
+    if(sc->text)
+        SDL_DestroyTexture(sc->text);
     if(sc->pixels)
         free(sc->pixels);
     SDL_Quit();
@@ -69,10 +69,8 @@ uint8_t keyboard(c8Env *env, c8IO *sc)
 		if((event.type != SDL_KEYDOWN) & (event.type != SDL_KEYUP))
 				continue;
 		val = (event.type == SDL_KEYDOWN) ? 1 : 0;
-        if(event.key.keysym.sym == SDLK_0)
-				key = 0x0;
-		else if(event.key.keysym.sym == SDLK_1)
-                key = 0x1;
+        if(event.key.keysym.sym == SDLK_1)
+				key = 0x1;
 		else if(event.key.keysym.sym == SDLK_2)
                 key = 0x2;
 		else if(event.key.keysym.sym == SDLK_3)
@@ -84,23 +82,23 @@ uint8_t keyboard(c8Env *env, c8IO *sc)
 		else if(event.key.keysym.sym == SDLK_w)
                 key = 0x5;
 		else if(event.key.keysym.sym == SDLK_e)
-                key = 0x6;
+                key = 0x5;
 		else if(event.key.keysym.sym == SDLK_r)
                 key = 0xD;
 		else if(event.key.keysym.sym == SDLK_a)
                 key = 0x7;
 		else if(event.key.keysym.sym == SDLK_s)
-                 key = 0x8;
+                key = 0x8;
 		else if(event.key.keysym.sym == SDLK_d)
-                 key = 0x9;
+                key = 0x9;
 		else if(event.key.keysym.sym == SDLK_f)
-                 key = 0xE;
+                key = 0xE;
 		else if(event.key.keysym.sym == SDLK_z)
-                 key = 0xA;
+                key = 0xA;
 		else if(event.key.keysym.sym == SDLK_x)
-                 key = 0x0;
+                key = 0x0;
 		else if(event.key.keysym.sym == SDLK_c)
-                 key = 0xB;
+                key = 0xB;
 		else if(event.key.keysym.sym == SDLK_v)
                 key = 0xF;
 		else if(event.key.keysym.sym == SDLK_p)
