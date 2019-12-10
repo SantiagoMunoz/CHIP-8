@@ -2,8 +2,6 @@
 
 A WIP CHIP-8 emulator and compiler made in C.
 
-NOTE: Im working on this in my spare time, be patient.
-
 Take a look at the technical reference [here](http://devernay.free.fr/hacks/chip8/C8TECH10.HTM)
 
 ## Usage
