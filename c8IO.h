@@ -2,7 +2,7 @@
 #define _C8IO_H_
 
 #include <stdint.h>
-#include <SDL2/SDL.h>
+#include "SDL.h"
 #include "c8Env.h"
 
 #define SDL_WHITE  0xFFFFFFFF

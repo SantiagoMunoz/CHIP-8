@@ -10,6 +10,7 @@
 #include <stdint.h>
 #include <time.h>
 #include <unistd.h>
+
 #include "c8Env.h"
 #include "c8IO.h"
 #include "c8Instructions.h"
