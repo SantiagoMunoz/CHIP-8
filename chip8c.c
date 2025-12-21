@@ -492,13 +492,12 @@ unsigned short parse_SHR(){
     }
     instruction |= (char2byte(arg[1]) & 0x0F) << 8;
     arg = strtok(NULL, " ,");
-    arg = strtok(NULL, " ,");
     if(arg[0] != 'V'){
         //TODO: Report error
         return 0xFFFF;
     }
     instruction |= (char2byte(arg[1]) & 0x0F) << 4;
-     
+
     return instruction;
 }
 unsigned short parse_SUBN(){
@@ -534,13 +533,12 @@ unsigned short parse_SHL(){
     }
     instruction |= (char2byte(arg[1]) & 0x0F) << 8;
     arg = strtok(NULL, " ,");
-    arg = strtok(NULL, " ,");
     if(arg[0] != 'V'){
         //TODO: Report error
         return 0xFFFF;
     }
     instruction |= (char2byte(arg[1]) & 0x0F) << 4;
-     
+
     return instruction;
 
 }

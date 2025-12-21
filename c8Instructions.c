@@ -50,7 +50,7 @@ void c8_CALL(c8Env *env, uint16_t opcode)
         printf("CALL");
     if(env->sp >= 12)
         return;
-    env->stack[env->sp] = env->pc;
+    env->stack[env->sp] = env->pc + 2;
     env->sp++;
     env->pc = (opcode & 0x0FFF);
 }
@@ -144,7 +144,7 @@ void c8_LD(c8Env *env, uint16_t opcode)
         return;
     }
     if(match_opcode(opcode, 0xF029, 0xF0FF)){
-        if(env->V[(opcode & 0x0F00) >> 8] < 0xF)
+        if(env->V[(opcode & 0x0F00) >> 8] <= 0xF)
             env->I = 0x000 + 5*env->V[(opcode & 0x0F00) >>8];
         else
             env->I = 0x000; //Write 0 by default
@@ -243,14 +243,14 @@ void c8_SUBN(c8Env *env, uint16_t opcode)
 
 void c8_SHL(c8Env *env, uint16_t opcode)
 {
-    env->V[15] = (env->V[(opcode & 0x0F00)>>8] & 0x8000) > 0 ? 1 : 0;
+    env->V[15] = (env->V[(opcode & 0x0F00)>>8] & 0x80) > 0 ? 1 : 0;
     env->V[(opcode & 0x0F00)>>8] = env->V[(opcode & 0x0F00)>>8] << 1; //LSL = Multiply by 2
     env->pc += 2;
 }
 
 void c8_RND(c8Env *env, uint16_t opcode)
 {
-    env->V[ (opcode & 0x0F00) >> 8 ] = (opcode & 0x00FF) + (rand() % 255);
+    env->V[ (opcode & 0x0F00) >> 8 ] = (rand() % 256) & (opcode & 0x00FF);
     env->pc +=2;
 }
 
