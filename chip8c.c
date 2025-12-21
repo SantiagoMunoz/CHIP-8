@@ -50,6 +50,16 @@ int current_position, skip;
 
 FILE *out;
 
+void print_help(const char *prog_name) {
+  printf("CHIP-8 Compiler\n");
+  printf("Usage:%s  <source_file> [<target_file>] [options]\n", prog_name);
+  printf("Arguments\n");
+  printf("  <source_file>   Path to the CHIP-8 source file to compile\n");
+  printf("  <target_file>   The target path for the compiled ROM\n");
+  printf("Options\n");
+  printf("  -h, --help      Display this help message\n");
+}
+
 int main(int argc, char **argv){
 
     char *word;
@@ -57,35 +67,58 @@ int main(int argc, char **argv){
     unsigned short instruction;
     data_mode = 0;
     skip = 0;
-        if(argc < 2){
-            printf("Usage: chip8c <input file> <output file>\n");
+    char *source_file = NULL;
+    char *target_file = NULL;
+
+    if(argc < 2){
+      print_help(argv[0]);
+      return 1;
+    }
+
+
+    for (int i = 1; i < argc; i++) {
+        if (strcmp(argv[i], "-h") == 0 || strcmp(argv[i], "--help") == 0) {
+            print_help(argv[0]);
+            return 0;
+        } else if (source_file == NULL) {
+            source_file = argv[i];
+        } else if (target_file == NULL) {
+          target_file = argv[i];
+        } else {
+            printf("Error: Unknown argument '%s'\n\n", argv[i]);
+            print_help(argv[0]);
             return 1;
         }
-        FILE *in = fopen(argv[1], "r");
-        if(in == NULL){
-            printf("File not found!\n");
+    }
+    if(source_file == NULL) {
+      printf("Cannot run without a source file!");
+      print_help(argv[0]);
+      return 1;
+    }
+    if(target_file == NULL) {
+      printf("No output target specified, using default program.out\n");
+      target_file = "program.out";
+    }
+    FILE *in = fopen(source_file, "r");
+    if(in == NULL){
+        printf("File not found!\n");
         return 1;
     }
-    printf("Compiling file ");
-    printf(argv[1]);
-    printf("\n");
-    if(argc == 3){
-        out = fopen(argv[2],"wb");
-    }else{
-        out = fopen("program.out","wb");
-        printf("Saving binary with name program.out\n");
-    }
+
+    printf("Compiling file %s\n", source_file);
+    out = fopen(target_file,"wb");
     if(out == NULL){
         printf("Unable to create or open output file\n");
         return 1;
     }
+    printf("Saving to file %s\n", target_file);
     linebuffer = (char*)malloc(256*sizeof(char)); //Just in case there are comments
     line = 0;
 
     while(fgets(linebuffer, 256,in) !=NULL){
         line += 1;
         printf("Processing line %d :", line);
-        printf(linebuffer);
+        printf("%s", linebuffer);
         if(0==strcmp(linebuffer,"\n")){
             line--;
             continue;
