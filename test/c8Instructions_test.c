@@ -57,8 +57,8 @@ START_TEST(CALL)
             "CALL did not jump to the correct memadress");
     ck_assert_msg(tEnv.sp == 4,
             "Stack pointer did not increase after CALL");
-    ck_assert_msg(tEnv.stack[tEnv.sp-1] == 0x123,
-            "Top of the stack does not contain the address before CALL");
+    ck_assert_msg(tEnv.stack[tEnv.sp-1] == 0x125,
+            "Top of the stack does not contain the address before CALL + 2");
 
 }
 END_TEST
@@ -221,8 +221,6 @@ START_TEST(LD)
 	ck_assert_msg(tEnv.pc == 2,
 					"LD does not increase the program counter");
 
-
-	
 }
 END_TEST
 
