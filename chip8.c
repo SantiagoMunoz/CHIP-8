@@ -89,7 +89,7 @@ int main(int argc, char **argv)
         if(m_env->debug)
             printf("\n");
         c8Env_tick(m_env);
-		usleep(20000);
+		usleep(100);
         render(m_env,m_io);
     }while(!keyboard(m_env, m_io));
 

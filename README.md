@@ -1,6 +1,6 @@
 # CHIP-8
 
-A WIP CHIP-8 emulator and compiler made in C.
+A CHIP-8 emulator and compiler made in C.
 
 Take a look at the technical reference [here](http://devernay.free.fr/hacks/chip8/C8TECH10.HTM)
 
@@ -10,8 +10,11 @@ Simply run the program specifying the program you want to load as an argument
 
     $ ./chip8 program.chip8
 
+### Looking for games?
 
-## Tests
+Jonearnest hosts a good collection [here](https://johnearnest.github.io/chip8Archive/)
+
+### Tests
 
 To run all tests:
 

@@ -168,13 +168,10 @@ void c8_LD(c8Env *env, uint16_t opcode)
     }
     if(match_opcode(opcode, 0xF00A, 0xF0FF)){
         int i;
-        while(1){
-            for(i=0;i<16;i++){
-                if(env->keypad[i] == 1){
-                    env->V[(opcode & 0x0F00) >> 8] = i;
-                    env->pc += 2;
-                    return;
-                }
+        for(i=0;i<16;i++){
+            if(env->keypad[i] == 1){
+                env->V[(opcode & 0x0F00) >> 8] = i;
+                env->pc += 2;
             }
         }
         return;
